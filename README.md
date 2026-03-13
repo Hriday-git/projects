@@ -59,11 +59,11 @@ A domain-specific Retrieval-Augmented Generation (RAG) system designed to answer
 The system ensures responses remain grounded in the provided knowledge base, significantly reducing hallucinations and off-topic outputs.
 
 ## How the Workflow Works
-1.Users upload domain-specific documents to the system.
-2.Documents are chunked and converted into vector embeddings.
-3.Embeddings are stored and indexed using Pinecone.
-4.User queries are embedded and matched against the most relevant document chunks.
-5.Retrieved context is passed to the LLM to generate accurate, document-grounded responses.
+1.Users upload domain-specific documents to the system./n
+2.Documents are chunked and converted into vector embeddings./n
+3.Embeddings are stored and indexed using Pinecone./n
+4.User queries are embedded and matched against the most relevant document chunks./n
+5.Retrieved context is passed to the LLM to generate accurate, document-grounded responses./n
 
 ### Key Capabilities
 -Domain-restricted question answering from uploaded documents.
