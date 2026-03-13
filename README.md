@@ -24,8 +24,10 @@ Collection of end-to-end automation workflows built using n8n
 - Gmail API
 - REST APIs
 
+
 2. AI-Driven Resume Screening & Decision Automation
 ![resume screening Flow](docs/resume-analysis.png)
+
 ![output](docs/resume-output.png)
 ### Overview
 An end-to-end recruitment automation workflow designed to evaluate resumes against role-specific prerequisites using AI-driven analysis. 
