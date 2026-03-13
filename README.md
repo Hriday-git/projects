@@ -55,8 +55,8 @@ The system reduces manual screening effort by automating document ingestion, eva
 ![Simple RAG agent ](docs/simple-rag-agent.png)
 
 ### Overview
--A domain-specific Retrieval-Augmented Generation (RAG) system designed to answer user queries strictly from uploaded documents using AI-driven retrieval and generation.
--The system ensures responses remain grounded in the provided knowledge base, significantly reducing hallucinations and off-topic outputs.
+A domain-specific Retrieval-Augmented Generation (RAG) system designed to answer user queries strictly from uploaded documents using AI-driven retrieval and generation.
+The system ensures responses remain grounded in the provided knowledge base, significantly reducing hallucinations and off-topic outputs.
 
 ## How the Workflow Works
 1.Users upload domain-specific documents to the system.
