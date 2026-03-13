@@ -28,7 +28,6 @@ Collection of end-to-end automation workflows built using n8n
 2. AI-Driven Resume Screening & Decision Automation
 ![resume screening Flow](docs/resume-analysis.png)
 
-![output](docs/resume-output.png)
 ### Overview
 An end-to-end recruitment automation workflow designed to evaluate resumes against role-specific prerequisites using AI-driven analysis. 
 The system reduces manual screening effort by automating document ingestion, evaluation, and structured decision outputs.
@@ -39,6 +38,8 @@ The system reduces manual screening effort by automating document ingestion, eva
 3. Evaluates resumes against predefined role requirements and prerequisites.
 4. Generates structured fit scores and risk assessments.
 5. Stores evaluation results in Google Sheets for recruiter review.
+
+![output](docs/resume-output.png)
 
 ### Key Capabilities
 - Automated resume ingestion and parsing.
