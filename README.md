@@ -17,6 +17,9 @@ Collection of end-to-end automation workflows built using n8n
 4. Aggregates all sections into a final draft.
 5. Delivers the completed newsletter draft directly to Gmail.
 
+![output](docs/news-output-1.png)
+
+![output](docs/news-output-2.png)
 ## Tech Stack
 - n8n
 - OpenAI API
