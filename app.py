@@ -9,9 +9,52 @@ import csv
 st.set_page_config(page_title="PolicyIQ · Marsh IMEA", page_icon="🛡️",
                    layout="wide", initial_sidebar_state="collapsed")
 
+# Mobile viewport fix
+st.markdown("""
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<style>
+/* Streamlit mobile overrides */
+@media (max-width: 768px) {
+    .main .block-container{padding-left:0.8rem !important;padding-right:0.8rem !important;}
+    div[data-testid="stHorizontalBlock"]{flex-wrap:wrap !important;}
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]{
+        min-width:calc(50% - 0.5rem) !important;
+        flex:1 1 calc(50% - 0.5rem) !important;
+    }
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child:last-child{
+        min-width:100% !important;
+    }
+    /* Stack 3-col metric cards */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(3)) > div[data-testid="column"]{
+        min-width:100% !important;
+        flex:1 1 100% !important;
+    }
+    /* Charts full width on mobile */
+    div[data-testid="stPlotlyChart"]{width:100% !important;}
+    /* Hero smaller on mobile */
+    .hero{margin-bottom:1rem !important;}
+    /* Tables scroll horizontally */
+    .card{overflow-x:auto !important;}
+    /* Nav buttons smaller */
+    div[data-testid="stHorizontalBlock"]:first-of-type .stButton>button{
+        font-size:0.68rem !important;
+        padding:0.4rem 0.3rem !important;
+        letter-spacing:0 !important;
+    }
+}
+@media (max-width: 480px) {
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]{
+        min-width:100% !important;
+        flex:1 1 100% !important;
+    }
+    .mcard-val{font-size:1.4rem !important;}
+}
+</style>
+""", unsafe_allow_html=True)
 
 
-WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook/insurance-extract"
+
+WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook-test/insurance-extract"
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -24,6 +67,7 @@ html,body,[class*="css"]{font-family:'Figtree',sans-serif;background-color:#0709
 [data-testid="collapsedControl"]{display:none !important;}
 [data-testid="stSidebar"]{display:none !important;}
 .stButton>button[kind="secondary"]{background:transparent !important;border:1px solid rgba(56,189,248,0.2) !important;color:#64748b !important;font-size:0.78rem !important;padding:0.4rem 1rem !important;border-radius:8px !important;text-transform:none !important;letter-spacing:0 !important;}
+.stButton>button:not([data-testid="baseButton-primary"]){transition:all 0.2s ease !important;}
 .hero{background:linear-gradient(135deg,#0c1424 0%,#0a1830 60%,#07101e 100%);border:1px solid rgba(56,189,248,0.12);border-radius:20px;padding:2.2rem 2.8rem;margin-bottom:2rem;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(56,189,248,0.1) 0%,transparent 70%);border-radius:50%;}
 .hero-badge{display:inline-block;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);color:#38bdf8;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:0.28rem 0.8rem;border-radius:20px;margin-bottom:0.9rem;}
@@ -35,10 +79,10 @@ html,body,[class*="css"]{font-family:'Figtree',sans-serif;background-color:#0709
 .card h3{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:#fff;margin:0 0 1rem 0;}
 .mcard{background:#0c1424;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:1.3rem 1.5rem;position:relative;overflow:hidden;margin-bottom:1rem;}
 .mcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#38bdf8,#00d2b4);}
-.mcard-label{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#334155;margin-bottom:0.45rem;}
+.mcard-label{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:0.45rem;}
 .mcard-val{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:#fff;line-height:1;margin-bottom:0.25rem;}
 .mcard-val.good{color:#00d2b4;}.mcard-val.warn{color:#fbbf24;}.mcard-val.bad{color:#f43f5e;}
-.mcard-sub{font-size:0.7rem;color:#334155;}
+.mcard-sub{font-size:0.7rem;color:#64748b;}
 .rbanner{border-radius:14px;padding:1.1rem 1.5rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem;border:1px solid;}
 .rbanner.LOW{background:rgba(0,210,180,0.06);border-color:rgba(0,210,180,0.2);}
 .rbanner.MEDIUM{background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.2);}
@@ -60,8 +104,12 @@ html,body,[class*="css"]{font-family:'Figtree',sans-serif;background-color:#0709
 .clause{background:rgba(56,189,248,0.04);border-left:3px solid #38bdf8;border-radius:0 8px 8px 0;padding:0.55rem 0.9rem;margin-bottom:0.4rem;font-size:0.8rem;color:#94a3b8;line-height:1.5;}
 .stTextArea textarea{background:#060810 !important;border:1px solid rgba(56,189,248,0.18) !important;border-radius:12px !important;color:#b0bcd0 !important;font-family:'Figtree',sans-serif !important;font-size:0.85rem !important;line-height:1.7 !important;padding:1rem !important;}
 .stTextArea textarea:focus{border-color:rgba(56,189,248,0.45) !important;box-shadow:0 0 0 3px rgba(56,189,248,0.07) !important;}
-.stButton>button{background:linear-gradient(135deg,#0369a1,#38bdf8) !important;color:white !important;border:none !important;border-radius:10px !important;padding:0.65rem 2rem !important;font-family:'Syne',sans-serif !important;font-weight:700 !important;font-size:0.82rem !important;letter-spacing:0.06em !important;text-transform:uppercase !important;width:100% !important;transition:all 0.2s !important;}
-.stButton>button:hover{transform:translateY(-2px) !important;box-shadow:0 8px 24px rgba(56,189,248,0.2) !important;}
+.stButton>button{background:linear-gradient(135deg,#0369a1,#38bdf8) !important;color:white !important;border:none !important;border-radius:10px !important;padding:0.65rem 2rem !important;font-family:'Syne',sans-serif !important;font-weight:700 !important;font-size:0.82rem !important;letter-spacing:0.06em !important;text-transform:uppercase !important;width:100% !important;transition:all 0.2s ease !important;}
+.stButton>button:hover{transform:translateY(-2px) !important;box-shadow:0 8px 24px rgba(56,189,248,0.25) !important;filter:brightness(1.1) !important;}
+.stButton>button:active{transform:translateY(0px) !important;box-shadow:0 2px 8px rgba(56,189,248,0.2) !important;filter:brightness(0.95) !important;}
+/* Nav tab buttons */
+div[data-testid="column"] .stButton>button{background:#0c1424 !important;border:1px solid rgba(56,189,248,0.18) !important;color:#64748b !important;font-size:0.82rem !important;letter-spacing:0.03em !important;text-transform:none !important;border-radius:10px !important;padding:0.55rem 1rem !important;font-weight:600 !important;}
+div[data-testid="column"] .stButton>button:hover{background:rgba(56,189,248,0.08) !important;border-color:rgba(56,189,248,0.4) !important;color:#38bdf8 !important;transform:translateY(-1px) !important;box-shadow:0 4px 12px rgba(56,189,248,0.15) !important;}
 .divider{height:1px;background:rgba(255,255,255,0.05);margin:1.5rem 0;}
 .ptable{width:100%;border-collapse:collapse;}
 .ptable th{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#334155;padding:0.6rem 1rem;border-bottom:1px solid rgba(255,255,255,0.06);text-align:left;}
@@ -94,6 +142,43 @@ html,body,[class*="css"]{font-family:'Figtree',sans-serif;background-color:#0709
 .score-key{font-size:0.72rem;color:#4a6080;}
 .score-pts{font-size:0.72rem;font-weight:700;color:#f43f5e;}
 .score-pts.zero{color:#00d2b4;}
+
+/* ── Mobile Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .block-container{padding:1rem 1rem 3rem 1rem !important;}
+    .hero{padding:1.4rem 1.4rem !important;}
+    .hero h1{font-size:1.6rem !important;}
+    .hero p{font-size:0.8rem !important;}
+    .hero-badge{font-size:0.58rem !important;}
+    .metrics-grid{grid-template-columns:1fr !important;}
+    .mcard-val{font-size:1.5rem !important;}
+    .card{padding:1.1rem !important;}
+    .why-card{padding:1rem !important;}
+    .action-card{padding:1rem !important;}
+    .frow{flex-direction:column !important;align-items:flex-start !important;gap:0.2rem !important;}
+    .fval{text-align:left !important;}
+    .ptable{font-size:0.72rem !important;}
+    .ptable th,.ptable td{padding:0.4rem 0.5rem !important;}
+    .chip{font-size:0.65rem !important;padding:0.18rem 0.5rem !important;}
+    .rbanner{padding:0.8rem 1rem !important;}
+    .rtitle{font-size:0.82rem !important;}
+}
+@media (max-width: 480px) {
+    .hero h1{font-size:1.3rem !important;}
+    .mcard{padding:1rem 1.1rem !important;}
+    .mcard-val{font-size:1.3rem !important;}
+    .mcard-label{font-size:0.6rem !important;}
+    .slabel{font-size:0.6rem !important;}
+    .clause{font-size:0.75rem !important;}
+}
+
+/* Top nav responsive */
+@media (max-width: 768px) {
+    div[data-testid="column"] .stButton>button{
+        font-size:0.7rem !important;
+        padding:0.45rem 0.4rem !important;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -488,30 +573,52 @@ def make_claims_by_region(portfolio):
 st.markdown("""
 <div style="display:flex;align-items:center;justify-content:space-between;
             background:#0b0f1a;border-bottom:1px solid rgba(255,255,255,0.06);
-            padding:0.8rem 2rem;margin:-1.8rem -2.5rem 1.5rem -2.5rem;">
+            padding:0.8rem 1.5rem;margin:-1.8rem -2.5rem 1.5rem -2.5rem;
+            flex-wrap:wrap;gap:0.5rem;">
     <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#fff;">
         Policy<span style="color:#38bdf8;">IQ</span>
-        <span style="font-size:0.65rem;font-weight:400;color:#334155;margin-left:0.8rem;letter-spacing:0.1em;text-transform:uppercase;">Marsh IMEA · OPEX Analytics</span>
+    </div>
+    <div style="font-size:0.65rem;color:#334155;letter-spacing:0.08em;text-transform:uppercase;">
+        OPEX Analytics · Marsh IMEA
     </div>
 </div>
 """, unsafe_allow_html=True)
 
+current_page = st.session_state.get("page","Policy Analyser")
+
+nav_items = [
+    ("nav_pa",  "🔍", "Policy Analyser",   "Policy Analyser"),
+    ("nav_port","📊", "Portfolio",          "Portfolio Dashboard"),
+    ("nav_ben", "⚖️", "Benchmarking",       "Benchmarking"),
+]
+
 nav_cols = st.columns([1,1,1,3])
-with nav_cols[0]:
-    if st.button("🔍  Policy Analyser", key="nav_pa", use_container_width=True):
-        st.session_state.page = "Policy Analyser"
-        st.rerun()
-with nav_cols[1]:
-    if st.button("📊  Portfolio", key="nav_port", use_container_width=True):
-        st.session_state.page = "Portfolio Dashboard"
-        st.rerun()
-with nav_cols[2]:
-    if st.button("⚖️  Benchmarking", key="nav_bench", use_container_width=True):
-        st.session_state.page = "Benchmarking"
-        st.rerun()
+for col, (key, icon, label, page_val) in zip(nav_cols[:3], nav_items):
+    is_active = current_page == page_val
+    active_style = """
+        background:linear-gradient(135deg,#0369a1,#38bdf8) !important;
+        color:white !important;
+        border:none !important;
+        box-shadow:0 4px 15px rgba(56,189,248,0.3) !important;
+    """ if is_active else ""
+    with col:
+        if st.button(f"{icon}  {label}", key=key, use_container_width=True):
+            st.session_state.page = page_val
+            st.rerun()
+        if is_active:
+            st.markdown(f"""
+            <style>
+            div[data-testid="stButton"] button[kind="secondary"]#btn_{key},
+            div[data-testid="column"]:nth-child({nav_items.index((key,icon,label,page_val))+1}) .stButton button {{
+                background: linear-gradient(135deg,#0369a1,#38bdf8) !important;
+                color: white !important;
+                border: none !important;
+                box-shadow: 0 4px 15px rgba(56,189,248,0.35) !important;
+            }}
+            </style>""", unsafe_allow_html=True)
+
 with nav_cols[3]:
-    pg = st.session_state.get("page","Policy Analyser")
-    st.markdown(f'<div style="text-align:right;font-size:0.75rem;color:#334155;padding-top:0.5rem;">Currently viewing: <span style="color:#38bdf8;font-weight:600;">{pg}</span></div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="text-align:right;font-size:0.75rem;color:#475569;padding-top:0.5rem;">Active: <span style="color:#38bdf8;font-weight:600;">{current_page}</span></div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
