@@ -9,7 +9,14 @@ import csv
 st.set_page_config(page_title="PolicyIQ · Marsh IMEA", page_icon="🛡️",
                    layout="wide", initial_sidebar_state="expanded")
 
-WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook/insurance-extract"
+# Force sidebar collapse button hidden
+st.markdown("""
+<style>
+[data-testid="collapsedControl"] { display: none !important; }
+</style>
+""", unsafe_allow_html=True)
+
+WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook-test/insurance-extract"
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
