@@ -1,2 +1,6 @@
 streamlit
 requests
+plotly
+pandas
+pdfplumber
+python-docx
