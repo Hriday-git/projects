@@ -9,7 +9,7 @@ import csv
 st.set_page_config(page_title="PolicyIQ · Marsh IMEA", page_icon="🛡️",
                    layout="wide", initial_sidebar_state="expanded")
 
-WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook-test/insurance-extract"
+WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook/insurance-extract"
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -160,8 +160,53 @@ Special Conditions:
 }
 
 CATEGORIES = ["Commercial Property","Industrial / Manufacturing","Marine Cargo",
-               "Health / Medical","Life","Motor","Liability","Cyber","Agriculture"]
+               "Health / Medical","Life","Motor","Liability","Cyber","Agriculture","Other"]
 REGIONS    = ["North India","South India","East India","West India","Central India"]
+
+def auto_detect_category(policy_type):
+    if not policy_type:
+        return "Other"
+    pt = policy_type.lower()
+    if any(k in pt for k in ["marine","cargo","shipping","freight","vessel","hull"]):
+        return "Marine Cargo"
+    if any(k in pt for k in ["motor","vehicle","auto","car","fleet","truck"]):
+        return "Motor"
+    if any(k in pt for k in ["health","medical","mediclaim","group health","hospitali"]):
+        return "Health / Medical"
+    if any(k in pt for k in ["life","term","endowment","ulip","annuity"]):
+        return "Life"
+    if any(k in pt for k in ["cyber","data breach","it risk","technology"]):
+        return "Cyber"
+    if any(k in pt for k in ["liability","indemnity","professional","d&o","directors","errors"]):
+        return "Liability"
+    if any(k in pt for k in ["industrial","manufacturing","factory","plant","machinery","engineering"]):
+        return "Industrial / Manufacturing"
+    if any(k in pt for k in ["agri","crop","farm","livestock","weather","kisan"]):
+        return "Agriculture"
+    if any(k in pt for k in ["property","office","commercial","building","fire","content","burglary","shop","all risk","all-risk"]):
+        return "Commercial Property"
+    return "Other"
+
+def auto_detect_region(location):
+    if not location:
+        return "West India"
+    loc = location.lower()
+    west    = ["mumbai","pune","maharashtra","gujarat","surat","ahmedabad","navi mumbai","thane","bkc","nashik","nagpur","goa","vadodara"]
+    south   = ["bengaluru","bangalore","chennai","tamil","kerala","andhra","telangana","hyderabad","kochi","coimbatore","karnataka"]
+    north   = ["delhi","punjab","haryana","rajasthan","himachal","jammu","kashmir","uttarakhand","noida","gurgaon","lucknow","jaipur","amritsar","chandigarh"]
+    east    = ["kolkata","west bengal","odisha","bihar","jharkhand","assam","bhubaneswar","patna","guwahati"]
+    central = ["madhya pradesh","chhattisgarh","bhopal","indore","raipur","jabalpur"]
+    for w in west:
+        if w in loc: return "West India"
+    for w in south:
+        if w in loc: return "South India"
+    for w in north:
+        if w in loc: return "North India"
+    for w in east:
+        if w in loc: return "East India"
+    for w in central:
+        if w in loc: return "Central India"
+    return "West India"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def call_webhook(policy_text):
@@ -603,8 +648,8 @@ if st.session_state.page == "Policy Analyser":
                         "premium": ef.get("premium_amount"),
                         "claims": ef.get("claims_paid"),
                         "expiry": ef.get("expiry_date") or "N/A",
-                        "category": None,
-                        "region": None
+                        "category": auto_detect_category(ef.get("policy_type","")),
+                        "region": auto_detect_region(ef.get("insured_location",""))
                     })
 
                     icons={"LOW":"🟢","MEDIUM":"🟡","HIGH":"🔴"}
@@ -763,7 +808,7 @@ elif st.session_state.page == "Portfolio Dashboard":
     <div class="hero">
         <div class="hero-badge">Multi-Policy View</div>
         <h1>Portfolio <span>Dashboard</span></h1>
-        <p>All analysed policies in one view. Assign category and region to unlock loss ratio and claims distribution charts.</p>
+        <p>All analysed policies in one view. Categories and regions are auto-detected from the policy text — charts populate automatically.</p>
     </div>""", unsafe_allow_html=True)
 
     portfolio = st.session_state.portfolio
@@ -776,25 +821,23 @@ elif st.session_state.page == "Portfolio Dashboard":
             <div style="font-size:0.8rem;color:#1e293b;">Analyse policies on the Policy Analyser page — they appear here automatically</div>
         </div>""", unsafe_allow_html=True)
     else:
-        # ── Let user tag each policy with category + region ──
-        st.markdown('<div class="slabel">Tag Policies (for charts)</div>', unsafe_allow_html=True)
-        for idx, p in enumerate(portfolio):
-            c1,c2,c3 = st.columns([2,2,1])
-            with c1:
-                cat = st.selectbox(f"Category — {p['name'][:20]}",["— select —"]+CATEGORIES,
-                    index=CATEGORIES.index(p["category"])+1 if p.get("category") in CATEGORIES else 0,
-                    key=f"cat_{idx}", label_visibility="collapsed")
-                portfolio[idx]["category"] = cat if cat != "— select —" else None
-            with c2:
-                reg = st.selectbox(f"Region — {p['name'][:20]}",["— select —"]+REGIONS,
-                    index=REGIONS.index(p["region"])+1 if p.get("region") in REGIONS else 0,
-                    key=f"reg_{idx}", label_visibility="collapsed")
-                portfolio[idx]["region"] = reg if reg != "— select —" else None
-            with c3:
-                rl_val = p["risk_level"]
-                st.markdown(f'<div style="padding-top:0.4rem;"><span class="badge {rl_val}">{rl_val}</span></div>',unsafe_allow_html=True)
+        st.markdown("<div style='margin-top:0.5rem;'></div>", unsafe_allow_html=True)
 
-        st.markdown("<div style='margin-top:1.2rem;'></div>", unsafe_allow_html=True)
+        # ── Auto-detected tags summary ──
+        tag_rows = ""
+        for p in portfolio:
+            cat = p.get("category") or "Other"
+            reg = p.get("region") or "West India"
+            rl_v = p["risk_level"]
+            tag_rows += f'''<div class="frow">
+                <div class="fkey" style="color:#cbd5e1;font-weight:500;">{p["name"][:28]}</div>
+                <div class="fval" style="text-align:left;flex:1;">
+                    <span class="chip info" style="font-size:0.65rem;">{cat}</span>
+                    <span class="chip info" style="font-size:0.65rem;">{reg}</span>
+                </div>
+                <div style="flex:0.5;text-align:right;"><span class="badge {rl_v}">{rl_v}</span></div>
+            </div>'''
+        st.markdown(f'<div class="card" style="margin-bottom:1.2rem;"><h3>🏷️ Auto-Detected Tags</h3>{tag_rows}</div>', unsafe_allow_html=True)
 
         # Summary metrics
         total=len(portfolio)
