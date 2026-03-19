@@ -791,7 +791,8 @@ elif st.session_state.page == "Portfolio Dashboard":
                     key=f"reg_{idx}", label_visibility="collapsed")
                 portfolio[idx]["region"] = reg if reg != "— select —" else None
             with c3:
-                st.markdown(f'<div style="padding-top:0.4rem;"><span class="badge {p[\'risk_level\']}">{p["risk_level"]}</span></div>',unsafe_allow_html=True)
+                rl_val = p["risk_level"]
+                st.markdown(f'<div style="padding-top:0.4rem;"><span class="badge {rl_val}">{rl_val}</span></div>',unsafe_allow_html=True)
 
         st.markdown("<div style='margin-top:1.2rem;'></div>", unsafe_allow_html=True)
 
