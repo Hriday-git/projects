@@ -11,7 +11,7 @@ st.set_page_config(page_title="PolicyIQ · Marsh IMEA", page_icon="🛡️",
 
 
 
-WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook-test/insurance-extract"
+WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook/insurance-extract"
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
