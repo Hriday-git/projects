@@ -54,7 +54,7 @@ st.markdown("""
 
 
 
-WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook-test/insurance-extract"
+WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook/insurance-extract"
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
