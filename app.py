@@ -7,14 +7,9 @@ import io
 import csv
 
 st.set_page_config(page_title="PolicyIQ · Marsh IMEA", page_icon="🛡️",
-                   layout="wide", initial_sidebar_state="expanded")
+                   layout="wide", initial_sidebar_state="collapsed")
 
-# Force sidebar collapse button hidden
-st.markdown("""
-<style>
-[data-testid="collapsedControl"] { display: none !important; }
-</style>
-""", unsafe_allow_html=True)
+
 
 WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook-test/insurance-extract"
 
@@ -26,8 +21,9 @@ html,body,[class*="css"]{font-family:'Figtree',sans-serif;background-color:#0709
 .stApp{background:#07090f;}
 #MainMenu,footer,header{visibility:hidden;}
 .block-container{padding:1.8rem 2.5rem 4rem 2.5rem;max-width:1400px;}
-[data-testid="stSidebar"]{background:#0b0f1a !important;border-right:1px solid rgba(255,255,255,0.05) !important;}
-[data-testid="stSidebar"] .block-container{padding:1.5rem 1.2rem;}
+[data-testid="collapsedControl"]{display:none !important;}
+[data-testid="stSidebar"]{display:none !important;}
+.stButton>button[kind="secondary"]{background:transparent !important;border:1px solid rgba(56,189,248,0.2) !important;color:#64748b !important;font-size:0.78rem !important;padding:0.4rem 1rem !important;border-radius:8px !important;text-transform:none !important;letter-spacing:0 !important;}
 .hero{background:linear-gradient(135deg,#0c1424 0%,#0a1830 60%,#07101e 100%);border:1px solid rgba(56,189,248,0.12);border-radius:20px;padding:2.2rem 2.8rem;margin-bottom:2rem;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(56,189,248,0.1) 0%,transparent 70%);border-radius:50%;}
 .hero-badge{display:inline-block;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);color:#38bdf8;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:0.28rem 0.8rem;border-radius:20px;margin-bottom:0.9rem;}
@@ -488,30 +484,34 @@ def make_claims_by_region(portfolio):
     return fig
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("""
-    <div style="margin-bottom:1.5rem;">
-        <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;">
-            Policy<span style="color:#38bdf8;">IQ</span></div>
-        <div style="font-size:0.68rem;color:#334155;margin-top:0.2rem;letter-spacing:0.1em;text-transform:uppercase;">
-            Marsh IMEA · OPEX Analytics</div>
+# ── Top navigation bar ───────────────────────────────────────────────────────
+st.markdown("""
+<div style="display:flex;align-items:center;justify-content:space-between;
+            background:#0b0f1a;border-bottom:1px solid rgba(255,255,255,0.06);
+            padding:0.8rem 2rem;margin:-1.8rem -2.5rem 1.5rem -2.5rem;">
+    <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#fff;">
+        Policy<span style="color:#38bdf8;">IQ</span>
+        <span style="font-size:0.65rem;font-weight:400;color:#334155;margin-left:0.8rem;letter-spacing:0.1em;text-transform:uppercase;">Marsh IMEA · OPEX Analytics</span>
     </div>
-    <div style="height:1px;background:rgba(255,255,255,0.05);margin-bottom:1.2rem;"></div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
-    pages = {"Policy Analyser":"🔍","Portfolio Dashboard":"📊","Benchmarking":"⚖️"}
-    for pg,icon in pages.items():
-        if st.button(f"{icon}  {pg}", key=f"nav_{pg}", use_container_width=True):
-            st.session_state.page = pg
-            st.rerun()
-
-    st.markdown("""
-    <div style="height:1px;background:rgba(255,255,255,0.05);margin:1.5rem 0 1rem 0;"></div>
-    <div style="font-size:0.68rem;color:#1e293b;line-height:1.7;">
-        Powered by n8n · GPT-4.1-mini<br>
-        Built for Marsh IMEA OPEX<br>
-        <span style="color:#38bdf8;">Data Science Internship 2025</span>
-    </div>""", unsafe_allow_html=True)
+nav_cols = st.columns([1,1,1,3])
+with nav_cols[0]:
+    if st.button("🔍  Policy Analyser", key="nav_pa", use_container_width=True):
+        st.session_state.page = "Policy Analyser"
+        st.rerun()
+with nav_cols[1]:
+    if st.button("📊  Portfolio", key="nav_port", use_container_width=True):
+        st.session_state.page = "Portfolio Dashboard"
+        st.rerun()
+with nav_cols[2]:
+    if st.button("⚖️  Benchmarking", key="nav_bench", use_container_width=True):
+        st.session_state.page = "Benchmarking"
+        st.rerun()
+with nav_cols[3]:
+    pg = st.session_state.get("page","Policy Analyser")
+    st.markdown(f'<div style="text-align:right;font-size:0.75rem;color:#334155;padding-top:0.5rem;">Currently viewing: <span style="color:#38bdf8;font-weight:600;">{pg}</span></div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
