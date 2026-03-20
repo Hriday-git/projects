@@ -302,8 +302,12 @@ div[data-testid="stExpander"] svg{color:#003087 !important;}
 [data-testid="stFileUploader"]{background:#ffffff !important;border:1px dashed #cbd5e1 !important;border-radius:8px !important;}
 
 /* ── Radio buttons ── */
-.stRadio label{background:#ffffff !important;border:1px solid #e2e8f0 !important;border-radius:6px !important;padding:0.35rem 0.9rem !important;font-size:0.8rem !important;color:#475569 !important;}
-.stRadio label:hover{border-color:#003087 !important;color:#003087 !important;}
+.stRadio label{background:#ffffff !important;border:1px solid #e2e8f0 !important;border-radius:6px !important;padding:0.35rem 0.9rem !important;font-size:0.82rem !important;color:#1e293b !important;font-weight:500 !important;}
+.stRadio label:hover{border-color:#003087 !important;color:#003087 !important;background:#eff6ff !important;}
+.stRadio label p{color:#1e293b !important;font-size:0.82rem !important;}
+div[data-testid="stRadio"] div[role="radiogroup"] label{color:#1e293b !important;}
+div[data-testid="stRadio"] div[role="radiogroup"] label span{color:#1e293b !important;}
+div[data-testid="stRadio"] div[role="radiogroup"] label p{color:#1e293b !important;}
 
 /* ── Top nav bar background ── */
 div[style*="background:#0b0f1a"]{background:#003087 !important;}
@@ -608,38 +612,38 @@ def build_actions(risk, ratios, ef):
 
 # ── Chart helpers ─────────────────────────────────────────────────────────────
 def make_gauge(score, level):
-    color = {"LOW":"#00d2b4","MEDIUM":"#fbbf24","HIGH":"#f43f5e"}.get(level,"#38bdf8")
+    color = {"LOW":"#006633","MEDIUM":"#b45309","HIGH":"#E4002B"}.get(level,"#003087")
     fig = go.Figure(go.Indicator(
         mode="gauge+number", value=score, domain={"x":[0,1],"y":[0,1]},
-        gauge={"axis":{"range":[0,100],"tickcolor":"#334155","tickfont":{"color":"#334155","size":10}},
-               "bar":{"color":color,"thickness":0.25},"bgcolor":"#0c1424","bordercolor":"rgba(0,0,0,0)",
-               "steps":[{"range":[0,30],"color":"rgba(0,210,180,0.08)"},
-                        {"range":[30,60],"color":"rgba(251,191,36,0.08)"},
-                        {"range":[60,100],"color":"rgba(244,63,94,0.08)"}],
+        gauge={"axis":{"range":[0,100],"tickcolor":"#94a3b8","tickfont":{"color":"#64748b","size":10}},
+               "bar":{"color":color,"thickness":0.28},"bgcolor":"#f8fafc","bordercolor":"#e2e8f0",
+               "steps":[{"range":[0,30],"color":"rgba(0,102,51,0.08)"},
+                        {"range":[30,60],"color":"rgba(180,83,9,0.08)"},
+                        {"range":[60,100],"color":"rgba(228,0,43,0.08)"}],
                "threshold":{"line":{"color":color,"width":3},"thickness":0.8,"value":score}},
-        number={"font":{"color":"#fff","size":32,"family":"Syne"},"suffix":"/100"}))
+        number={"font":{"color":"#1e293b","size":32,"family":"Inter"},"suffix":"/100"}))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
-        height=200,margin=dict(t=20,b=10,l=20,r=20),font={"color":"#334155"})
+        height=200,margin=dict(t=20,b=10,l=20,r=20),font={"color":"#64748b"})
     return fig
 
 def make_pie(claims, premium):
     fig = go.Figure(go.Pie(
         labels=["Claims Paid","Retained Premium"],values=[claims,max(premium-claims,0)],hole=0.55,
-        marker=dict(colors=["#f43f5e","#38bdf8"],line=dict(color="#07090f",width=2)),
-        textfont=dict(color="#fff",size=11),hovertemplate="%{label}: ₹%{value:,.0f}<extra></extra>"))
+        marker=dict(colors=["#E4002B","#003087"],line=dict(color="#ffffff",width=2)),
+        textfont=dict(color="#ffffff",size=11),hovertemplate="%{label}: ₹%{value:,.0f}<extra></extra>"))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
         showlegend=True,height=220,margin=dict(t=10,b=10,l=10,r=10),
-        legend=dict(font=dict(color="#64748b",size=10),bgcolor="rgba(0,0,0,0)"))
+        legend=dict(font=dict(color="#334155",size=10),bgcolor="rgba(0,0,0,0)"))
     return fig
 
 def make_donut(utilization):
     val = utilization if utilization else 0
-    color = "#f43f5e" if val>=80 else "#fbbf24" if val>=50 else "#00d2b4"
+    color = "#E4002B" if val>=80 else "#b45309" if val>=50 else "#006633"
     fig = go.Figure(go.Pie(labels=["Utilized","Available"],values=[val,max(100-val,0)],hole=0.65,
-        marker=dict(colors=[color,"rgba(255,255,255,0.05)"],line=dict(color="#07090f",width=2)),
+        marker=dict(colors=[color,"#e2e8f0"],line=dict(color="#ffffff",width=2)),
         textinfo="none",hovertemplate="%{label}: %{value:.1f}%<extra></extra>"))
     fig.add_annotation(text=f"{val:.1f}%",x=0.5,y=0.5,showarrow=False,
-        font=dict(size=20,color="#fff",family="Syne"),xanchor="center")
+        font=dict(size=20,color="#1e293b",family="Inter"),xanchor="center")
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,height=200,margin=dict(t=10,b=10,l=10,r=10))
     return fig
@@ -650,69 +654,91 @@ def make_bar(ratios):
     colors=[]
     for n,v in zip(["loss_ratio","coverage_utilization","claim_frequency"],
                    [ratios.get("loss_ratio"),ratios.get("coverage_utilization"),ratios.get("claim_frequency")]):
-        if v is None: colors.append("#334155")
-        elif n=="loss_ratio": colors.append("#f43f5e" if v>=100 else "#fbbf24" if v>=75 else "#00d2b4")
-        elif n=="coverage_utilization": colors.append("#f43f5e" if v>=80 else "#fbbf24" if v>=50 else "#00d2b4")
-        else: colors.append("#f43f5e" if v>=3 else "#fbbf24" if v>=1.5 else "#00d2b4")
+        if v is None: colors.append("#94a3b8")
+        elif n=="loss_ratio": colors.append("#E4002B" if v>=100 else "#b45309" if v>=75 else "#006633")
+        elif n=="coverage_utilization": colors.append("#E4002B" if v>=80 else "#b45309" if v>=50 else "#006633")
+        else: colors.append("#E4002B" if v>=3 else "#b45309" if v>=1.5 else "#006633")
     fig=go.Figure(go.Bar(x=names,y=vals,marker_color=colors,
         text=[f"{v:.1f}" for v in vals],textposition="outside",
-        textfont=dict(color="#94a3b8",size=11),hovertemplate="%{x}: %{y:.2f}<extra></extra>"))
+        textfont=dict(color="#334155",size=11),hovertemplate="%{x}: %{y:.2f}<extra></extra>"))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
         height=230,margin=dict(t=30,b=10,l=10,r=10),bargap=0.4,
-        xaxis=dict(tickfont=dict(color="#64748b",size=11),gridcolor="rgba(0,0,0,0)"),
-        yaxis=dict(tickfont=dict(color="#64748b",size=10),gridcolor="rgba(255,255,255,0.04)",zeroline=False))
+        xaxis=dict(tickfont=dict(color="#475569",size=11),gridcolor="rgba(0,0,0,0)"),
+        yaxis=dict(tickfont=dict(color="#475569",size=10),gridcolor="rgba(0,0,0,0.05)",zeroline=False))
     return fig
 
 def make_portfolio_risk_chart(portfolio):
     names=[p["name"][:16] for p in portfolio]
     scores=[p["risk_score"] for p in portfolio]
-    colors=["#f43f5e" if p["risk_level"]=="HIGH" else "#fbbf24" if p["risk_level"]=="MEDIUM" else "#00d2b4" for p in portfolio]
+    colors=["#E4002B" if p["risk_level"]=="HIGH" else "#b45309" if p["risk_level"]=="MEDIUM" else "#006633" for p in portfolio]
     fig=go.Figure(go.Bar(x=names,y=scores,marker_color=colors,
-        text=scores,textposition="outside",textfont=dict(color="#94a3b8",size=11),
+        text=scores,textposition="outside",textfont=dict(color="#334155",size=11),
         hovertemplate="%{x}<br>Risk Score: %{y}<extra></extra>"))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
         height=260,margin=dict(t=20,b=20,l=10,r=10),bargap=0.35,
-        xaxis=dict(tickfont=dict(color="#64748b",size=10),gridcolor="rgba(0,0,0,0)"),
-        yaxis=dict(tickfont=dict(color="#64748b",size=10),gridcolor="rgba(255,255,255,0.04)",zeroline=False,range=[0,115]))
+        xaxis=dict(tickfont=dict(color="#475569",size=10),gridcolor="rgba(0,0,0,0)"),
+        yaxis=dict(tickfont=dict(color="#475569",size=10),gridcolor="rgba(0,0,0,0.05)",zeroline=False,range=[0,115]))
     return fig
 
 def make_loss_ratio_by_category(portfolio):
     from collections import defaultdict
-    cat_data = defaultdict(list)
-    for p in portfolio:
-        if p.get("loss_ratio") and p.get("category"):
-            cat_data[p["category"]].append(p["loss_ratio"])
-    if not cat_data:
+    total = len(portfolio)
+    if total == 0:
         return None
-    cats = list(cat_data.keys())
-    avgs = [sum(v)/len(v) for v in cat_data.values()]
-    colors=["#f43f5e" if v>=100 else "#fbbf24" if v>=75 else "#00d2b4" for v in avgs]
-    fig=go.Figure(go.Bar(x=cats,y=avgs,marker_color=colors,
-        text=[f"{v:.1f}%" for v in avgs],textposition="outside",
-        textfont=dict(color="#94a3b8",size=10),hovertemplate="%{x}<br>Avg Loss Ratio: %{y:.1f}%<extra></extra>"))
-    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
-        height=280,margin=dict(t=30,b=60,l=10,r=10),bargap=0.35,
-        xaxis=dict(tickfont=dict(color="#64748b",size=9),gridcolor="rgba(0,0,0,0)",tickangle=-25),
-        yaxis=dict(tickfont=dict(color="#64748b",size=10),gridcolor="rgba(255,255,255,0.04)",zeroline=False))
+    cat_count = defaultdict(int)
+    for p in portfolio:
+        cat = p.get("category") or "Other"
+        cat_count[cat] += 1
+    if not cat_count:
+        return None
+    cats = list(cat_count.keys())
+    pcts = [round((cat_count[c] / total) * 100, 1) for c in cats]
+    colors = ["#003087","#0066CC","#E4002B","#b45309","#006633","#64748b","#0891b2","#7c3aed","#be185d","#065f46"]
+    bar_colors = [colors[i % len(colors)] for i in range(len(cats))]
+    fig = go.Figure(go.Bar(
+        x=cats, y=pcts, marker_color=bar_colors,
+        text=[f"{v}%" for v in pcts], textposition="outside",
+        textfont=dict(color="#334155", size=11),
+        hovertemplate="%{x}<br>%{y}% of total policies<extra></extra>"
+    ))
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        height=280, margin=dict(t=30, b=60, l=10, r=10), bargap=0.4,
+        xaxis=dict(tickfont=dict(color="#64748b", size=9), gridcolor="rgba(0,0,0,0)", tickangle=-20),
+        yaxis=dict(tickfont=dict(color="#64748b", size=10), gridcolor="rgba(0,0,0,0.05)",
+                   zeroline=False, ticksuffix="%", range=[0, max(pcts)*1.25])
+    )
     return fig
 
 def make_claims_by_region(portfolio):
     from collections import defaultdict
-    region_data = defaultdict(float)
-    for p in portfolio:
-        if p.get("claims") and p.get("region"):
-            region_data[p["region"]] += p["claims"]
-    if not region_data:
+    total = len(portfolio)
+    if total == 0:
         return None
-    labels=list(region_data.keys())
-    values=[region_data[l] for l in labels]
-    colors=["#38bdf8","#00d2b4","#fbbf24","#f43f5e","#a78bfa"]
-    fig=go.Figure(go.Pie(labels=labels,values=values,hole=0.5,
-        marker=dict(colors=colors[:len(labels)],line=dict(color="#07090f",width=2)),
-        textfont=dict(color="#fff",size=11),hovertemplate="%{label}<br>Claims: ₹%{value:,.0f}<extra></extra>"))
-    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
-        showlegend=True,height=280,margin=dict(t=10,b=10,l=10,r=10),
-        legend=dict(font=dict(color="#64748b",size=10),bgcolor="rgba(0,0,0,0)"))
+    region_count = defaultdict(int)
+    for p in portfolio:
+        reg = p.get("region") or "West India"
+        region_count[reg] += 1
+    if not region_count:
+        return None
+    labels = list(region_count.keys())
+    values = [region_count[l] for l in labels]
+    pcts   = [round((v / total) * 100, 1) for v in values]
+    colors = ["#003087","#E4002B","#0066CC","#b45309","#006633"]
+    fig = go.Figure(go.Pie(
+        labels=labels,
+        values=values,
+        hole=0.5,
+        marker=dict(colors=colors[:len(labels)], line=dict(color="#ffffff", width=2)),
+        textfont=dict(color="#ffffff", size=11),
+        textinfo="label+percent",
+        hovertemplate="%{label}<br>%{value} policies (%{percent})<extra></extra>"
+    ))
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        showlegend=True, height=280, margin=dict(t=10, b=10, l=10, r=10),
+        legend=dict(font=dict(color="#334155", size=10), bgcolor="rgba(0,0,0,0)")
+    )
     return fig
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -866,19 +892,19 @@ if st.session_state.page == "Policy Analyser":
 
         elif not result:
             st.markdown("""
-            <div style="background:#060810;border:1px solid rgba(255,255,255,0.04);border-radius:12px;
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
                         padding:1.2rem;margin-top:1.2rem;">
                 <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
-                            color:#1e293b;margin-bottom:0.6rem;">Pipeline extracts</div>
+                            color:#003087;margin-bottom:0.6rem;">Pipeline extracts</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.25rem;">
-                    <div style="font-size:0.73rem;color:#334155;">✦ Policy & insured info</div>
-                    <div style="font-size:0.73rem;color:#334155;">✦ Coverage & premium</div>
-                    <div style="font-size:0.73rem;color:#334155;">✦ Claims history</div>
-                    <div style="font-size:0.73rem;color:#334155;">✦ Loss ratio</div>
-                    <div style="font-size:0.73rem;color:#334155;">✦ Risk score & flags</div>
-                    <div style="font-size:0.73rem;color:#334155;">✦ Risk clauses</div>
-                    <div style="font-size:0.73rem;color:#334155;">✦ Why this risk score</div>
-                    <div style="font-size:0.73rem;color:#334155;">✦ Action recommendations</div>
+                    <div style="font-size:0.75rem;color:#334155;">✦ Policy & insured info</div>
+                    <div style="font-size:0.75rem;color:#334155;">✦ Coverage & premium</div>
+                    <div style="font-size:0.75rem;color:#334155;">✦ Claims history</div>
+                    <div style="font-size:0.75rem;color:#334155;">✦ Loss ratio</div>
+                    <div style="font-size:0.75rem;color:#334155;">✦ Risk score & flags</div>
+                    <div style="font-size:0.75rem;color:#334155;">✦ Risk clauses</div>
+                    <div style="font-size:0.75rem;color:#334155;">✦ Why this risk score</div>
+                    <div style="font-size:0.75rem;color:#334155;">✦ Action recommendations</div>
                 </div>
             </div>""", unsafe_allow_html=True)
 
@@ -987,12 +1013,12 @@ if st.session_state.page == "Policy Analyser":
         else:
             if not st.session_state.get("analyser_result"):
                 st.markdown("""
-                <div style="background:#0c1424;border:1px dashed rgba(56,189,248,0.12);
+                <div style="background:#ffffff;border:2px dashed #cbd5e1;
                             border-radius:16px;padding:4rem 2rem;text-align:center;">
                     <div style="font-size:2.5rem;margin-bottom:1rem;">🛡️</div>
-                    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#1e293b;margin-bottom:0.4rem;">
+                    <div style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;color:#003087;margin-bottom:0.4rem;">
                         No document analysed yet</div>
-                    <div style="font-size:0.8rem;color:#1e293b;max-width:260px;margin:0 auto;">
+                    <div style="font-size:0.82rem;color:#64748b;max-width:260px;margin:0 auto;">
                         Paste a policy, upload a file, or load a sample — then click Extract & Analyse</div>
                 </div>""",unsafe_allow_html=True)
             else:
