@@ -587,13 +587,15 @@ st.markdown("""
 current_page = st.session_state.get("page","Policy Analyser")
 
 nav_items = [
-    ("nav_pa",  "🔍", "Policy Analyser",   "Policy Analyser"),
-    ("nav_port","📊", "Portfolio",          "Portfolio Dashboard"),
-    ("nav_ben", "⚖️", "Benchmarking",       "Benchmarking"),
+    ("nav_pa",   "🔍", "Analyser",    "Policy Analyser"),
+    ("nav_port", "📊", "Portfolio",   "Portfolio Dashboard"),
+    ("nav_ben",  "⚖️", "Benchmark",   "Benchmarking"),
+    ("nav_abt",  "💡", "About",       "About & Guide"),
+    ("nav_imp",  "📈", "Impact",      "Impact & Benefits"),
 ]
 
-nav_cols = st.columns([1,1,1,3])
-for col, (key, icon, label, page_val) in zip(nav_cols[:3], nav_items):
+nav_cols = st.columns([1,1,1,1,1])
+for col, (key, icon, label, page_val) in zip(nav_cols[:5], nav_items):
     is_active = current_page == page_val
     active_style = """
         background:linear-gradient(135deg,#0369a1,#38bdf8) !important;
@@ -617,8 +619,7 @@ for col, (key, icon, label, page_val) in zip(nav_cols[:3], nav_items):
             }}
             </style>""", unsafe_allow_html=True)
 
-with nav_cols[3]:
-    st.markdown(f'<div style="text-align:right;font-size:0.75rem;color:#475569;padding-top:0.5rem;">Active: <span style="color:#38bdf8;font-weight:600;">{current_page}</span></div>', unsafe_allow_html=True)
+
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1223,3 +1224,297 @@ elif st.session_state.page == "Benchmarking":
             for k in ["bench_result_1","bench_result_2"]:
                 if k in st.session_state: del st.session_state[k]
             st.rerun()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 4 — About & Guide
+# ══════════════════════════════════════════════════════════════════════════════
+elif st.session_state.page == "About & Guide":
+
+    st.markdown("""
+    <div class="hero">
+        <div class="hero-badge">Documentation</div>
+        <h1>About & <span>Guide</span></h1>
+        <p>What PolicyIQ is, who it's for, and how to use every feature.</p>
+    </div>""", unsafe_allow_html=True)
+
+    # ── What is PolicyIQ ──
+    st.markdown("""
+    <div class="card">
+        <h3>🛡️ What is PolicyIQ?</h3>
+        <div style="font-size:0.88rem;color:#94a3b8;line-height:1.8;">
+            PolicyIQ is an AI-powered insurance document intelligence platform built for Marsh IMEA's OPEX Analytics team.
+            It solves a core operational problem — insurance brokers spend 60–90 minutes manually reading each policy document,
+            extracting key fields, computing risk ratios, and writing summaries. PolicyIQ reduces that to under 30 seconds
+            by combining an LLM extraction pipeline with automated risk scoring and business analytics.
+            <br><br>
+            It is built specifically for commercial insurance use cases across the IMEA region — covering property,
+            marine, industrial, liability, and other policy types.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top:0.5rem;'></div>", unsafe_allow_html=True)
+
+    # ── How to use ──
+    st.markdown('<div class="slabel">How to Use Each Page</div>', unsafe_allow_html=True)
+
+    g1, g2, g3 = st.columns(3, gap="large")
+
+    with g1:
+        st.markdown("""
+        <div class="card" style="height:100%;">
+            <h3>🔍 Policy Analyser</h3>
+            <div style="font-size:0.82rem;color:#64748b;margin-bottom:1rem;">
+                The main extraction and analysis page.
+            </div>
+            <div class="step"><div class="step-num">1</div>
+                <div><div class="step-title">Choose input method</div>
+                <div class="step-desc">Select Text, PDF, CSV, or Word Doc from the toggle at the top of the left panel.</div></div></div>
+            <div class="step"><div class="step-num">2</div>
+                <div><div class="step-title">Paste or upload</div>
+                <div class="step-desc">Paste raw policy text directly, or upload your document file. A preview will confirm the text was extracted.</div></div></div>
+            <div class="step"><div class="step-num">3</div>
+                <div><div class="step-title">Click Extract & Analyse</div>
+                <div class="step-desc">The AI pipeline runs — typically takes 5–15 seconds depending on document length.</div></div></div>
+            <div class="step"><div class="step-num">4</div>
+                <div><div class="step-title">Read the results</div>
+                <div class="step-desc">Right panel shows: risk banner, ratio cards, charts, extracted fields, risk flags, and clauses. Left panel shows why the risk score was assigned and what actions to take.</div></div></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with g2:
+        st.markdown("""
+        <div class="card" style="height:100%;">
+            <h3>📊 Portfolio Dashboard</h3>
+            <div style="font-size:0.82rem;color:#64748b;margin-bottom:1rem;">
+                Tracks all policies analysed in the current session.
+            </div>
+            <div class="step"><div class="step-num">1</div>
+                <div><div class="step-title">Analyse multiple policies</div>
+                <div class="step-desc">Every policy you analyse on the Analyser page is automatically saved to the portfolio — no manual steps needed.</div></div></div>
+            <div class="step"><div class="step-num">2</div>
+                <div><div class="step-title">Auto-detected tags</div>
+                <div class="step-desc">Category (Marine, Industrial, Property etc.) and Region (North/South/East/West India) are detected automatically from the policy text.</div></div></div>
+            <div class="step"><div class="step-num">3</div>
+                <div><div class="step-title">Read the charts</div>
+                <div class="step-desc">Risk distribution pie, risk scores bar chart, avg loss ratio by insurance category, and claims paid by region all populate automatically.</div></div></div>
+            <div class="step"><div class="step-num">4</div>
+                <div><div class="step-title">Review the table</div>
+                <div class="step-desc">All policies ranked by risk score with full metrics. Use this to prioritise which accounts need immediate attention.</div></div></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with g3:
+        st.markdown("""
+        <div class="card" style="height:100%;">
+            <h3>⚖️ Benchmarking</h3>
+            <div style="font-size:0.82rem;color:#64748b;margin-bottom:1rem;">
+                Side-by-side comparison of any two policies.
+            </div>
+            <div class="step"><div class="step-num">1</div>
+                <div><div class="step-title">Input Policy 1</div>
+                <div class="step-desc">Paste text or upload a file in the Policy 1 section. Click Analyse Policy 1 — results appear on the right immediately.</div></div></div>
+            <div class="step"><div class="step-num">2</div>
+                <div><div class="step-title">Input Policy 2</div>
+                <div class="step-desc">Scroll down to the Policy 2 section. Paste or upload separately. Click Analyse Policy 2.</div></div></div>
+            <div class="step"><div class="step-num">3</div>
+                <div><div class="step-title">Head-to-head appears</div>
+                <div class="step-desc">Once both are analysed, a comparison section appears automatically — metric cards, grouped bar chart, and a verdict on which policy carries lower risk.</div></div></div>
+            <div class="step"><div class="step-num">4</div>
+                <div><div class="step-title">Reset when done</div>
+                <div class="step-desc">Use the Reset Benchmarking button at the bottom to clear both policies and start a fresh comparison.</div></div></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── Tips ──
+    st.markdown("<div style='margin-top:1.5rem;'></div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="card">
+        <h3>💬 Tips for Best Results</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:0.5rem;">
+            <div class="clause">Include policy number, insured name, coverage amount, premium, expiry date and claims history in the document for most accurate extraction.</div>
+            <div class="clause">PDF upload works best with text-based PDFs. Scanned image PDFs may not extract correctly — use text paste for those.</div>
+            <div class="clause">For the Portfolio charts to show categories, the policy type field must be present in the document — e.g. "Marine Cargo", "Industrial All-Risk".</div>
+            <div class="clause">For benchmarking, you can compare any two policies — same sector or different. The tool compares ratios not policy types.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 5 — Impact & Benefits
+# ══════════════════════════════════════════════════════════════════════════════
+elif st.session_state.page == "Impact & Benefits":
+
+    st.markdown("""
+    <div class="hero">
+        <div class="hero-badge">Business Value</div>
+        <h1>Impact & <span>Benefits</span></h1>
+        <p>What PolicyIQ genuinely changes — only capabilities that did not exist before this tool.</p>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="slabel">Benefits by Stakeholder</div>', unsafe_allow_html=True)
+
+    # Row 1
+    r1c1, r1c2 = st.columns(2, gap="large")
+
+    with r1c1:
+        st.markdown("""
+        <div class="card">
+            <h3>🏢 Brokers & Analysts</h3>
+            <div style="font-size:0.78rem;color:#475569;margin-bottom:1rem;font-style:italic;">
+                Front-line team processing policies daily
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Unstructured document → structured data</div>
+                <div class="fval" style="color:#00d2b4;flex:1;font-weight:700;">90 min → 30 sec</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Previously required manually reading full document, copying values to Excel, and computing formulas. Now happens automatically on upload.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Loss Ratio, Coverage Utilization, Claim Frequency</div>
+                <div class="fval" style="color:#00d2b4;flex:1;font-weight:700;">Computed instantly</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">No formula setup, no Excel dependency. Three industry-standard ratios computed from extracted values in the same pipeline call.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">"Why this risk score" explanation</div>
+                <div class="fval" style="color:#00d2b4;flex:1;font-weight:700;">Auto-generated</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Previously required a senior analyst to interpret numbers and write a risk narrative. Now generated automatically with factor-by-factor breakdown.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Policies processed per analyst per day</div>
+                <div class="fval" style="color:#00d2b4;flex:1;font-weight:700;">5 → 40+</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with r1c2:
+        st.markdown("""
+        <div class="card">
+            <h3>👔 Management & Team Leads</h3>
+            <div style="font-size:0.78rem;color:#475569;margin-bottom:1rem;font-style:italic;">
+                Account managers and analytics team leads
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Loss ratio by insurance category (Marine, Industrial, Property etc.)</div>
+                <div class="fval" style="color:#38bdf8;flex:1;font-weight:700;">Real-time chart</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Previously required manual aggregation across multiple spreadsheets and policy files. Now visible as a live bar chart across all analysed policies.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Region-wise claims distribution across India</div>
+                <div class="fval" style="color:#38bdf8;flex:1;font-weight:700;">Auto-detected</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Location extracted from policy text and auto-mapped to North/South/East/West/Central India. Claims distribution chart requires zero manual tagging.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Risk-ranked portfolio view across all accounts</div>
+                <div class="fval" style="color:#38bdf8;flex:1;font-weight:700;">Session-wide</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">All policies analysed in a session are automatically ranked by risk score. High-risk accounts surface to the top — no manual sorting or end-of-month batch process.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top:0.5rem;'></div>", unsafe_allow_html=True)
+
+    # Row 2
+    r2c1, r2c2 = st.columns(2, gap="large")
+
+    with r2c1:
+        st.markdown("""
+        <div class="card">
+            <h3>🏭 Insurance Clients (Corporates)</h3>
+            <div style="font-size:0.78rem;color:#475569;margin-bottom:1rem;font-style:italic;">
+                End clients whose policies are being assessed
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Risk explanation in plain language</div>
+                <div class="fval" style="color:#fbbf24;flex:1;font-weight:700;">Not just a score</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Clients receive a factor-by-factor breakdown of why their policy scored the way it did — not just a number. Builds trust and transparency in the advisory relationship.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Action recommendations specific to their policy</div>
+                <div class="fval" style="color:#fbbf24;flex:1;font-weight:700;">Policy-specific</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Recommendations (renew urgently, increase coverage, add safety clause) are generated from the actual extracted data — not generic templates sent to all clients.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Side-by-side policy comparison</div>
+                <div class="fval" style="color:#fbbf24;flex:1;font-weight:700;">Benchmarking tab</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Clients considering policy renewal or switching insurers can compare two options objectively — ratios, risk scores, and verdict shown side by side in seconds.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with r2c2:
+        st.markdown("""
+        <div class="card">
+            <h3>🏦 Marsh as a Business</h3>
+            <div style="font-size:0.78rem;color:#475569;margin-bottom:1rem;font-style:italic;">
+                Organisational and competitive impact
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Consistent risk scoring across all accounts</div>
+                <div class="fval" style="color:#f43f5e;flex:1;font-weight:700;">Bias removed</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Previously, risk assessment quality varied by analyst experience and judgment. The same policy now gets the same score regardless of who processes it — methodology is standardised.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">Structured JSON output for every analysed policy</div>
+                <div class="fval" style="color:#f43f5e;flex:1;font-weight:700;">Audit-ready</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Every extraction produces a machine-readable structured record with all fields, ratios, and risk score. This feeds directly into compliance documentation without additional data entry.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#cbd5e1;flex:2;">8x analyst throughput on document processing</div>
+                <div class="fval" style="color:#f43f5e;flex:1;font-weight:700;">Same headcount</div>
+            </div>
+            <div class="frow">
+                <div class="fkey" style="color:#94a3b8;flex:2;">Conservative estimate based on 90 min manual vs 10 min with tool (including review time). Team capacity scales without additional hiring — existing analysts focus on advisory work.</div>
+                <div class="fval" style="flex:1;"></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Bottom summary bar
+    st.markdown("<div style='margin-top:1rem;'></div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background:linear-gradient(135deg,#0c1a2e,#0a1628);border:1px solid rgba(56,189,248,0.15);
+                border-radius:16px;padding:1.5rem 2rem;">
+        <div style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.15em;
+                    text-transform:uppercase;color:#38bdf8;margin-bottom:1rem;">One Line Summary</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;line-height:1.6;">
+            PolicyIQ removes the manual bottleneck between document ingestion and risk decision-making —
+            <span style="color:#38bdf8;">freeing brokers to focus on advisory work</span> while giving leadership
+            <span style="color:#00d2b4;">real-time portfolio intelligence</span> they previously only got at end of month.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
