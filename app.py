@@ -13,20 +13,41 @@ st.set_page_config(page_title="PolicyIQ · Marsh IMEA", page_icon="🛡️",
 st.markdown("""
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <style>
+/* Streamlit mobile overrides */
 @media (max-width: 768px) {
     .main .block-container{padding-left:0.8rem !important;padding-right:0.8rem !important;}
     div[data-testid="stHorizontalBlock"]{flex-wrap:wrap !important;}
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]{
+        min-width:calc(50% - 0.5rem) !important;
+        flex:1 1 calc(50% - 0.5rem) !important;
+    }
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child:last-child{
+        min-width:100% !important;
+    }
+    /* Stack 3-col metric cards */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(3)) > div[data-testid="column"]{
+        min-width:100% !important;
+        flex:1 1 100% !important;
+    }
+    /* Charts full width on mobile */
     div[data-testid="stPlotlyChart"]{width:100% !important;}
+    /* Hero smaller on mobile */
     .hero{margin-bottom:1rem !important;}
+    /* Tables scroll horizontally */
     .card{overflow-x:auto !important;}
+    /* Nav buttons smaller */
     div[data-testid="stHorizontalBlock"]:first-of-type .stButton>button{
-        font-size:0.68rem !important;padding:0.4rem 0.3rem !important;
+        font-size:0.68rem !important;
+        padding:0.4rem 0.3rem !important;
+        letter-spacing:0 !important;
     }
 }
 @media (max-width: 480px) {
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"]{
-        min-width:100% !important;flex:1 1 100% !important;
+        min-width:100% !important;
+        flex:1 1 100% !important;
     }
+    .mcard-val{font-size:1.4rem !important;}
 }
 </style>
 """, unsafe_allow_html=True)
@@ -35,300 +56,134 @@ st.markdown("""
 
 WEBHOOK_URL = "https://ridhay.app.n8n.cloud/webhook/insurance-extract"
 
-# ── CSS — Marsh Brand Theme ──────────────────────────────────────────────────
+# ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Georgia:ital@0;1&display=swap');
-
-/* ── Marsh Brand Colours ──
-   Primary Blue:  #003087
-   Accent Red:    #E4002B
-   Light Blue:    #0066CC
-   Off White:     #F5F7FA
-   Mid Grey:      #64748b
-   Dark Text:     #1a1a2e
-*/
-
-html,body,[class*="css"]{font-family:'Inter',sans-serif;background-color:#F5F7FA;color:#1e293b;}
-.stApp{background:#F5F7FA;}
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600&display=swap');
+html,body,[class*="css"]{font-family:'Figtree',sans-serif;background-color:#07090f;color:#dde2ee;}
+.stApp{background:#07090f;}
 #MainMenu,footer,header{visibility:hidden;}
 .block-container{padding:1.8rem 2.5rem 4rem 2.5rem;max-width:1400px;}
 [data-testid="collapsedControl"]{display:none !important;}
 [data-testid="stSidebar"]{display:none !important;}
-
-/* ── Hero ── */
-.hero{
-    background:linear-gradient(135deg,#003087 0%,#004db3 60%,#0066CC 100%);
-    border:none;border-radius:16px;
-    padding:2.4rem 2.8rem;margin-bottom:2rem;
-    position:relative;overflow:hidden;
-    box-shadow:0 8px 32px rgba(0,48,135,0.18);
-}
-.hero::before{
-    content:'';position:absolute;top:-60px;right:-60px;
-    width:260px;height:260px;
-    background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);
-    border-radius:50%;
-}
-.hero::after{
-    content:'';position:absolute;bottom:0;left:0;right:0;height:4px;
-    background:linear-gradient(90deg,#E4002B,#ff3355,#E4002B);
-}
-.hero-badge{
-    display:inline-block;
-    background:rgba(255,255,255,0.15);
-    border:1px solid rgba(255,255,255,0.3);
-    color:#fff;font-size:0.65rem;font-weight:700;
-    letter-spacing:0.18em;text-transform:uppercase;
-    padding:0.28rem 0.8rem;border-radius:4px;margin-bottom:0.9rem;
-}
-.hero h1{
-    font-family:'Inter',sans-serif;font-size:2.2rem;font-weight:800;
-    color:#fff;margin:0 0 0.4rem 0;line-height:1.1;letter-spacing:-0.02em;
-}
-.hero h1 span{color:#ffccd4;}
-.hero p{color:rgba(255,255,255,0.75);font-size:0.9rem;margin:0;font-weight:400;max-width:520px;}
-
-/* ── Section label ── */
-.slabel{
-    font-size:0.65rem;font-weight:700;letter-spacing:0.18em;
-    text-transform:uppercase;color:#003087;margin-bottom:0.5rem;
-}
-
-/* ── Cards ── */
-.card{
-    background:#ffffff;
-    border:1px solid #e2e8f0;
-    border-radius:12px;padding:1.6rem;margin-bottom:1.2rem;
-    box-shadow:0 1px 4px rgba(0,0,0,0.06);
-}
-.card h3{
-    font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;
-    color:#003087;margin:0 0 1rem 0;
-}
-
-/* ── Metric cards ── */
-.mcard{
-    background:#ffffff;border:1px solid #e2e8f0;
-    border-radius:12px;padding:1.3rem 1.5rem;
-    position:relative;overflow:hidden;margin-bottom:1rem;
-    box-shadow:0 1px 4px rgba(0,0,0,0.06);
-}
-.mcard::before{
-    content:'';position:absolute;top:0;left:0;right:0;height:3px;
-    background:linear-gradient(90deg,#003087,#0066CC);
-}
-.mcard-label{
-    font-size:0.65rem;font-weight:700;letter-spacing:0.12em;
-    text-transform:uppercase;color:#64748b;margin-bottom:0.45rem;
-}
-.mcard-val{
-    font-family:'Inter',sans-serif;font-size:1.9rem;font-weight:800;
-    color:#1e293b;line-height:1;margin-bottom:0.25rem;
-}
-.mcard-val.good{color:#006633;}
-.mcard-val.warn{color:#b45309;}
-.mcard-val.bad{color:#E4002B;}
-.mcard-sub{font-size:0.7rem;color:#94a3b8;}
-
-/* ── Risk banners ── */
-.rbanner{
-    border-radius:10px;padding:1.1rem 1.5rem;
-    margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem;border:1px solid;
-}
-.rbanner.LOW{background:#f0fdf4;border-color:#86efac;border-left:4px solid #006633;}
-.rbanner.MEDIUM{background:#fffbeb;border-color:#fcd34d;border-left:4px solid #b45309;}
-.rbanner.HIGH{background:#fff1f2;border-color:#fecdd3;border-left:4px solid #E4002B;}
+.stButton>button[kind="secondary"]{background:transparent !important;border:1px solid rgba(56,189,248,0.2) !important;color:#64748b !important;font-size:0.78rem !important;padding:0.4rem 1rem !important;border-radius:8px !important;text-transform:none !important;letter-spacing:0 !important;}
+.stButton>button:not([data-testid="baseButton-primary"]){transition:all 0.2s ease !important;}
+.hero{background:linear-gradient(135deg,#0c1424 0%,#0a1830 60%,#07101e 100%);border:1px solid rgba(56,189,248,0.12);border-radius:20px;padding:2.2rem 2.8rem;margin-bottom:2rem;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(56,189,248,0.1) 0%,transparent 70%);border-radius:50%;}
+.hero-badge{display:inline-block;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);color:#38bdf8;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:0.28rem 0.8rem;border-radius:20px;margin-bottom:0.9rem;}
+.hero h1{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;color:#fff;margin:0 0 0.4rem 0;line-height:1.1;letter-spacing:-0.02em;}
+.hero h1 span{color:#38bdf8;}
+.hero p{color:#64748b;font-size:0.9rem;margin:0;font-weight:400;max-width:500px;}
+.slabel{font-size:0.65rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#38bdf8;margin-bottom:0.5rem;}
+.card{background:#0c1424;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:1.6rem;margin-bottom:1.2rem;}
+.card h3{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:#fff;margin:0 0 1rem 0;}
+.mcard{background:#0c1424;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:1.3rem 1.5rem;position:relative;overflow:hidden;margin-bottom:1rem;}
+.mcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#38bdf8,#00d2b4);}
+.mcard-label{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:0.45rem;}
+.mcard-val{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:#fff;line-height:1;margin-bottom:0.25rem;}
+.mcard-val.good{color:#00d2b4;}.mcard-val.warn{color:#fbbf24;}.mcard-val.bad{color:#f43f5e;}
+.mcard-sub{font-size:0.7rem;color:#64748b;}
+.rbanner{border-radius:14px;padding:1.1rem 1.5rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem;border:1px solid;}
+.rbanner.LOW{background:rgba(0,210,180,0.06);border-color:rgba(0,210,180,0.2);}
+.rbanner.MEDIUM{background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.2);}
+.rbanner.HIGH{background:rgba(244,63,94,0.06);border-color:rgba(244,63,94,0.2);}
 .rdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.rdot.LOW{background:#006633;box-shadow:0 0 6px rgba(0,102,51,0.4);}
-.rdot.MEDIUM{background:#b45309;box-shadow:0 0 6px rgba(180,83,9,0.4);}
-.rdot.HIGH{background:#E4002B;box-shadow:0 0 6px rgba(228,0,43,0.4);}
-.rtitle{font-family:'Inter',sans-serif;font-weight:700;font-size:0.92rem;color:#1e293b;}
+.rdot.LOW{background:#00d2b4;box-shadow:0 0 8px #00d2b4;}
+.rdot.MEDIUM{background:#fbbf24;box-shadow:0 0 8px #fbbf24;}
+.rdot.HIGH{background:#f43f5e;box-shadow:0 0 8px #f43f5e;}
+.rtitle{font-family:'Syne',sans-serif;font-weight:700;font-size:0.92rem;color:#fff;}
 .rsub{font-size:0.75rem;color:#64748b;margin-top:0.1rem;}
-
-/* ── Field rows ── */
-.frow{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid #f1f5f9;}
+.frow{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
 .frow:last-child{border-bottom:none;}
-.fkey{font-size:0.75rem;font-weight:500;color:#64748b;flex:1;}
-.fval{font-size:0.82rem;font-weight:600;color:#1e293b;text-align:right;flex:2;}
-.fval.missing{color:#E4002B;font-style:italic;font-size:0.75rem;}
-
-/* ── Chips ── */
-.chip{
-    display:inline-block;background:#fff1f2;border:1px solid #fecdd3;
-    color:#E4002B;font-size:0.7rem;font-weight:500;
-    padding:0.22rem 0.65rem;border-radius:4px;margin:0.15rem;
-}
-.chip.warn{background:#fffbeb;border-color:#fcd34d;color:#b45309;}
-.chip.info{background:#eff6ff;border-color:#bfdbfe;color:#003087;}
-
-/* ── Clauses ── */
-.clause{
-    background:#eff6ff;border-left:3px solid #003087;
-    border-radius:0 6px 6px 0;padding:0.55rem 0.9rem;margin-bottom:0.4rem;
-    font-size:0.8rem;color:#334155;line-height:1.5;
-}
-
-/* ── Textarea ── */
-.stTextArea textarea{
-    background:#ffffff !important;border:1px solid #cbd5e1 !important;
-    border-radius:8px !important;color:#1e293b !important;
-    font-family:'Inter',sans-serif !important;font-size:0.85rem !important;
-    line-height:1.7 !important;padding:1rem !important;
-}
-.stTextArea textarea:focus{
-    border-color:#003087 !important;
-    box-shadow:0 0 0 3px rgba(0,48,135,0.1) !important;
-}
-
-/* ── Main action button ── */
-.stButton>button{
-    background:linear-gradient(135deg,#003087,#0066CC) !important;
-    color:white !important;border:none !important;border-radius:6px !important;
-    padding:0.65rem 2rem !important;font-family:'Inter',sans-serif !important;
-    font-weight:700 !important;font-size:0.82rem !important;
-    letter-spacing:0.04em !important;text-transform:uppercase !important;
-    width:100% !important;transition:all 0.2s ease !important;
-}
-.stButton>button:hover{
-    transform:translateY(-1px) !important;
-    box-shadow:0 6px 20px rgba(0,48,135,0.25) !important;
-    filter:brightness(1.1) !important;
-}
-.stButton>button:active{
-    transform:translateY(0px) !important;
-    box-shadow:0 2px 6px rgba(0,48,135,0.2) !important;
-}
-
-/* ── Nav tab buttons ── */
-div[data-testid="column"] .stButton>button{
-    background:#ffffff !important;
-    border:1px solid #e2e8f0 !important;
-    color:#64748b !important;font-size:0.82rem !important;
-    letter-spacing:0.02em !important;text-transform:none !important;
-    border-radius:6px !important;padding:0.55rem 1rem !important;
-    font-weight:600 !important;
-    box-shadow:0 1px 3px rgba(0,0,0,0.06) !important;
-}
-div[data-testid="column"] .stButton>button:hover{
-    background:#eff6ff !important;
-    border-color:#003087 !important;
-    color:#003087 !important;
-    transform:translateY(-1px) !important;
-    box-shadow:0 4px 12px rgba(0,48,135,0.12) !important;
-}
-
-/* ── Divider ── */
-.divider{height:1px;background:#e2e8f0;margin:1.5rem 0;}
-
-/* ── Portfolio table ── */
+.fkey{font-size:0.75rem;font-weight:500;color:#334155;flex:1;}
+.fval{font-size:0.82rem;font-weight:500;color:#cbd5e1;text-align:right;flex:2;}
+.fval.missing{color:#f43f5e;font-style:italic;font-size:0.75rem;}
+.chip{display:inline-block;background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.2);color:#f43f5e;font-size:0.7rem;font-weight:500;padding:0.22rem 0.65rem;border-radius:20px;margin:0.15rem;}
+.chip.warn{background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.2);color:#fbbf24;}
+.chip.info{background:rgba(56,189,248,0.08);border-color:rgba(56,189,248,0.2);color:#38bdf8;}
+.clause{background:rgba(56,189,248,0.04);border-left:3px solid #38bdf8;border-radius:0 8px 8px 0;padding:0.55rem 0.9rem;margin-bottom:0.4rem;font-size:0.8rem;color:#94a3b8;line-height:1.5;}
+.stTextArea textarea{background:#060810 !important;border:1px solid rgba(56,189,248,0.18) !important;border-radius:12px !important;color:#b0bcd0 !important;font-family:'Figtree',sans-serif !important;font-size:0.85rem !important;line-height:1.7 !important;padding:1rem !important;}
+.stTextArea textarea:focus{border-color:rgba(56,189,248,0.45) !important;box-shadow:0 0 0 3px rgba(56,189,248,0.07) !important;}
+.stButton>button{background:linear-gradient(135deg,#0369a1,#38bdf8) !important;color:white !important;border:none !important;border-radius:10px !important;padding:0.65rem 2rem !important;font-family:'Syne',sans-serif !important;font-weight:700 !important;font-size:0.82rem !important;letter-spacing:0.06em !important;text-transform:uppercase !important;width:100% !important;transition:all 0.2s ease !important;}
+.stButton>button:hover{transform:translateY(-2px) !important;box-shadow:0 8px 24px rgba(56,189,248,0.25) !important;filter:brightness(1.1) !important;}
+.stButton>button:active{transform:translateY(0px) !important;box-shadow:0 2px 8px rgba(56,189,248,0.2) !important;filter:brightness(0.95) !important;}
+/* Nav tab buttons */
+div[data-testid="column"] .stButton>button{background:#0c1424 !important;border:1px solid rgba(56,189,248,0.18) !important;color:#64748b !important;font-size:0.82rem !important;letter-spacing:0.03em !important;text-transform:none !important;border-radius:10px !important;padding:0.55rem 1rem !important;font-weight:600 !important;}
+div[data-testid="column"] .stButton>button:hover{background:rgba(56,189,248,0.08) !important;border-color:rgba(56,189,248,0.4) !important;color:#38bdf8 !important;transform:translateY(-1px) !important;box-shadow:0 4px 12px rgba(56,189,248,0.15) !important;}
+.divider{height:1px;background:rgba(255,255,255,0.05);margin:1.5rem 0;}
 .ptable{width:100%;border-collapse:collapse;}
-.ptable th{
-    font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
-    color:#64748b;padding:0.6rem 1rem;
-    border-bottom:2px solid #e2e8f0;text-align:left;
-    background:#f8fafc;
-}
-.ptable td{
-    font-size:0.82rem;color:#334155;padding:0.75rem 1rem;
-    border-bottom:1px solid #f1f5f9;
-}
-.ptable tr:hover td{background:#f8fafc;}
-.badge{display:inline-block;font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:4px;}
-.badge.LOW{background:#dcfce7;color:#006633;}
-.badge.MEDIUM{background:#fef3c7;color:#b45309;}
-.badge.HIGH{background:#fff1f2;color:#E4002B;}
-
-/* ── Why risk + action cards ── */
-.why-card{
-    background:#ffffff;border:1px solid #e2e8f0;
-    border-top:3px solid #003087;
-    border-radius:12px;padding:1.4rem;margin-bottom:1.2rem;
-    box-shadow:0 1px 4px rgba(0,0,0,0.06);
-}
-.why-card h3{font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;color:#003087;margin:0 0 0.8rem 0;}
-.why-row{display:flex;align-items:flex-start;gap:0.7rem;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;}
+.ptable th{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#334155;padding:0.6rem 1rem;border-bottom:1px solid rgba(255,255,255,0.06);text-align:left;}
+.ptable td{font-size:0.82rem;color:#94a3b8;padding:0.75rem 1rem;border-bottom:1px solid rgba(255,255,255,0.03);}
+.badge{display:inline-block;font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:20px;}
+.badge.LOW{background:rgba(0,210,180,0.1);color:#00d2b4;}
+.badge.MEDIUM{background:rgba(251,191,36,0.1);color:#fbbf24;}
+.badge.HIGH{background:rgba(244,63,94,0.1);color:#f43f5e;}
+/* Why Risk Score card */
+.why-card{background:#0c1424;border:1px solid rgba(56,189,248,0.12);border-radius:16px;padding:1.4rem;margin-bottom:1.2rem;}
+.why-card h3{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:#fff;margin:0 0 0.8rem 0;}
+.why-row{display:flex;align-items:flex-start;gap:0.7rem;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
 .why-row:last-child{border-bottom:none;}
-.why-num{background:#eff6ff;color:#003087;font-family:'Inter',sans-serif;font-weight:800;font-size:0.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.why-num.warn{background:#fffbeb;color:#b45309;}
-.why-num.info{background:#f0fdf4;color:#006633;}
-.why-text{font-size:0.82rem;color:#475569;line-height:1.5;}
-.why-text b{color:#1e293b;}
-
-/* ── Action card ── */
-.action-card{
-    background:#ffffff;border:1px solid #e2e8f0;
-    border-top:3px solid #E4002B;
-    border-radius:12px;padding:1.4rem;margin-bottom:1.2rem;
-    box-shadow:0 1px 4px rgba(0,0,0,0.06);
-}
-.action-card h3{font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;color:#E4002B;margin:0 0 0.8rem 0;}
-.action-row{display:flex;align-items:flex-start;gap:0.7rem;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;}
+.why-num{background:rgba(244,63,94,0.12);color:#f43f5e;font-family:'Syne',sans-serif;font-weight:800;font-size:0.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.why-num.warn{background:rgba(251,191,36,0.12);color:#fbbf24;}
+.why-num.info{background:rgba(56,189,248,0.12);color:#38bdf8;}
+.why-text{font-size:0.8rem;color:#94a3b8;line-height:1.5;}
+.why-text b{color:#cbd5e1;}
+/* Action card */
+.action-card{background:#0c1424;border:1px solid rgba(0,210,180,0.12);border-radius:16px;padding:1.4rem;margin-bottom:1.2rem;}
+.action-card h3{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:#fff;margin:0 0 0.8rem 0;}
+.action-row{display:flex;align-items:flex-start;gap:0.7rem;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
 .action-row:last-child{border-bottom:none;}
 .action-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
-.action-text{font-size:0.82rem;color:#475569;line-height:1.5;}
-.action-text b{color:#003087;}
-
-/* ── Score breakdown ── */
-.score-breakdown{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:0.8rem 1rem;margin-top:0.8rem;}
+.action-text{font-size:0.8rem;color:#94a3b8;line-height:1.5;}
+.action-text b{color:#00d2b4;}
+/* Score breakdown mini */
+.score-breakdown{background:#060810;border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:0.8rem 1rem;margin-top:0.8rem;}
 .score-row{display:flex;justify-content:space-between;align-items:center;padding:0.3rem 0;}
-.score-key{font-size:0.72rem;color:#64748b;}
-.score-pts{font-size:0.72rem;font-weight:700;color:#E4002B;}
-.score-pts.zero{color:#006633;}
-
-/* ── Steps (About page) ── */
-.step{display:flex;gap:1rem;align-items:flex-start;padding:0.8rem;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;margin-bottom:0.6rem;}
-.step-num{background:#003087;color:#fff;font-family:'Inter',sans-serif;font-weight:800;font-size:0.8rem;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.step-title{font-weight:600;font-size:0.88rem;color:#1e293b;margin-bottom:0.2rem;}
-.step-desc{font-size:0.78rem;color:#64748b;line-height:1.5;}
-
-/* ── About cards ── */
-.about-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:1.5rem;height:100%;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
-.about-icon{font-size:1.8rem;margin-bottom:0.8rem;}
-.about-title{font-family:'Inter',sans-serif;font-weight:700;font-size:0.95rem;color:#003087;margin-bottom:0.5rem;}
-.about-desc{font-size:0.82rem;color:#64748b;line-height:1.6;}
-
-/* ── Expanders ── */
-div[data-testid="stExpander"]{background:#ffffff !important;border:1px solid #e2e8f0 !important;border-radius:10px !important;margin-bottom:0.8rem !important;box-shadow:0 1px 3px rgba(0,0,0,0.05) !important;}
-div[data-testid="stExpander"] summary{font-size:0.92rem !important;font-weight:600 !important;color:#1e293b !important;padding:1rem 1.2rem !important;}
-div[data-testid="stExpander"] summary:hover{color:#003087 !important;}
+.score-key{font-size:0.72rem;color:#4a6080;}
+.score-pts{font-size:0.72rem;font-weight:700;color:#f43f5e;}
+.score-pts.zero{color:#00d2b4;}
+/* Expander styling */
+div[data-testid="stExpander"]{background:#0c1424 !important;border:1px solid rgba(255,255,255,0.07) !important;border-radius:14px !important;margin-bottom:0.8rem !important;}
+div[data-testid="stExpander"] summary{font-size:0.92rem !important;font-weight:600 !important;color:#cbd5e1 !important;padding:1rem 1.2rem !important;}
+div[data-testid="stExpander"] summary:hover{color:#38bdf8 !important;}
 div[data-testid="stExpander"] div[data-testid="stExpanderDetails"]{padding:0.2rem 1.2rem 1rem 1.2rem !important;}
-div[data-testid="stExpander"] svg{color:#003087 !important;}
+div[data-testid="stExpander"] svg{color:#38bdf8 !important;}
 
-/* ── Selectbox ── */
-.stSelectbox>div>div{background:#ffffff !important;border:1px solid #cbd5e1 !important;border-radius:8px !important;color:#1e293b !important;}
-
-/* ── File uploader ── */
-[data-testid="stFileUploader"]{background:#ffffff !important;border:1px dashed #cbd5e1 !important;border-radius:8px !important;}
-
-/* ── Radio buttons ── */
-.stRadio label{background:#ffffff !important;border:1px solid #e2e8f0 !important;border-radius:6px !important;padding:0.35rem 0.9rem !important;font-size:0.82rem !important;color:#1e293b !important;font-weight:500 !important;}
-.stRadio label:hover{border-color:#003087 !important;color:#003087 !important;background:#eff6ff !important;}
-.stRadio label p{color:#1e293b !important;font-size:0.82rem !important;}
-div[data-testid="stRadio"] div[role="radiogroup"] label{color:#1e293b !important;}
-div[data-testid="stRadio"] div[role="radiogroup"] label span{color:#1e293b !important;}
-div[data-testid="stRadio"] div[role="radiogroup"] label p{color:#1e293b !important;}
-
-/* ── Top nav bar background ── */
-div[style*="background:#0b0f1a"]{background:#003087 !important;}
-
-/* ── Mobile Responsive ── */
+/* ── Mobile Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .block-container{padding:1rem 1rem 3rem 1rem !important;}
     .hero{padding:1.4rem 1.4rem !important;}
     .hero h1{font-size:1.6rem !important;}
     .hero p{font-size:0.8rem !important;}
+    .hero-badge{font-size:0.58rem !important;}
+    .metrics-grid{grid-template-columns:1fr !important;}
     .mcard-val{font-size:1.5rem !important;}
     .card{padding:1.1rem !important;}
+    .why-card{padding:1rem !important;}
+    .action-card{padding:1rem !important;}
     .frow{flex-direction:column !important;align-items:flex-start !important;gap:0.2rem !important;}
     .fval{text-align:left !important;}
     .ptable{font-size:0.72rem !important;}
     .ptable th,.ptable td{padding:0.4rem 0.5rem !important;}
+    .chip{font-size:0.65rem !important;padding:0.18rem 0.5rem !important;}
+    .rbanner{padding:0.8rem 1rem !important;}
+    .rtitle{font-size:0.82rem !important;}
 }
 @media (max-width: 480px) {
     .hero h1{font-size:1.3rem !important;}
     .mcard{padding:1rem 1.1rem !important;}
     .mcard-val{font-size:1.3rem !important;}
+    .mcard-label{font-size:0.6rem !important;}
+    .slabel{font-size:0.6rem !important;}
+    .clause{font-size:0.75rem !important;}
+}
+
+/* Top nav responsive */
+@media (max-width: 768px) {
+    div[data-testid="column"] .stButton>button{
+        font-size:0.7rem !important;
+        padding:0.45rem 0.4rem !important;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -612,38 +467,38 @@ def build_actions(risk, ratios, ef):
 
 # ── Chart helpers ─────────────────────────────────────────────────────────────
 def make_gauge(score, level):
-    color = {"LOW":"#006633","MEDIUM":"#b45309","HIGH":"#E4002B"}.get(level,"#003087")
+    color = {"LOW":"#00d2b4","MEDIUM":"#fbbf24","HIGH":"#f43f5e"}.get(level,"#38bdf8")
     fig = go.Figure(go.Indicator(
         mode="gauge+number", value=score, domain={"x":[0,1],"y":[0,1]},
-        gauge={"axis":{"range":[0,100],"tickcolor":"#94a3b8","tickfont":{"color":"#64748b","size":10}},
-               "bar":{"color":color,"thickness":0.28},"bgcolor":"#f8fafc","bordercolor":"#e2e8f0",
-               "steps":[{"range":[0,30],"color":"rgba(0,102,51,0.08)"},
-                        {"range":[30,60],"color":"rgba(180,83,9,0.08)"},
-                        {"range":[60,100],"color":"rgba(228,0,43,0.08)"}],
+        gauge={"axis":{"range":[0,100],"tickcolor":"#334155","tickfont":{"color":"#334155","size":10}},
+               "bar":{"color":color,"thickness":0.25},"bgcolor":"#0c1424","bordercolor":"rgba(0,0,0,0)",
+               "steps":[{"range":[0,30],"color":"rgba(0,210,180,0.08)"},
+                        {"range":[30,60],"color":"rgba(251,191,36,0.08)"},
+                        {"range":[60,100],"color":"rgba(244,63,94,0.08)"}],
                "threshold":{"line":{"color":color,"width":3},"thickness":0.8,"value":score}},
-        number={"font":{"color":"#1e293b","size":32,"family":"Inter"},"suffix":"/100"}))
+        number={"font":{"color":"#fff","size":32,"family":"Syne"},"suffix":"/100"}))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
-        height=200,margin=dict(t=20,b=10,l=20,r=20),font={"color":"#64748b"})
+        height=200,margin=dict(t=20,b=10,l=20,r=20),font={"color":"#334155"})
     return fig
 
 def make_pie(claims, premium):
     fig = go.Figure(go.Pie(
         labels=["Claims Paid","Retained Premium"],values=[claims,max(premium-claims,0)],hole=0.55,
-        marker=dict(colors=["#E4002B","#003087"],line=dict(color="#ffffff",width=2)),
-        textfont=dict(color="#ffffff",size=11),hovertemplate="%{label}: ₹%{value:,.0f}<extra></extra>"))
+        marker=dict(colors=["#f43f5e","#38bdf8"],line=dict(color="#07090f",width=2)),
+        textfont=dict(color="#fff",size=11),hovertemplate="%{label}: ₹%{value:,.0f}<extra></extra>"))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
         showlegend=True,height=220,margin=dict(t=10,b=10,l=10,r=10),
-        legend=dict(font=dict(color="#334155",size=10),bgcolor="rgba(0,0,0,0)"))
+        legend=dict(font=dict(color="#64748b",size=10),bgcolor="rgba(0,0,0,0)"))
     return fig
 
 def make_donut(utilization):
     val = utilization if utilization else 0
-    color = "#E4002B" if val>=80 else "#b45309" if val>=50 else "#006633"
+    color = "#f43f5e" if val>=80 else "#fbbf24" if val>=50 else "#00d2b4"
     fig = go.Figure(go.Pie(labels=["Utilized","Available"],values=[val,max(100-val,0)],hole=0.65,
-        marker=dict(colors=[color,"#e2e8f0"],line=dict(color="#ffffff",width=2)),
+        marker=dict(colors=[color,"rgba(255,255,255,0.05)"],line=dict(color="#07090f",width=2)),
         textinfo="none",hovertemplate="%{label}: %{value:.1f}%<extra></extra>"))
     fig.add_annotation(text=f"{val:.1f}%",x=0.5,y=0.5,showarrow=False,
-        font=dict(size=20,color="#1e293b",family="Inter"),xanchor="center")
+        font=dict(size=20,color="#fff",family="Syne"),xanchor="center")
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,height=200,margin=dict(t=10,b=10,l=10,r=10))
     return fig
@@ -654,108 +509,83 @@ def make_bar(ratios):
     colors=[]
     for n,v in zip(["loss_ratio","coverage_utilization","claim_frequency"],
                    [ratios.get("loss_ratio"),ratios.get("coverage_utilization"),ratios.get("claim_frequency")]):
-        if v is None: colors.append("#94a3b8")
-        elif n=="loss_ratio": colors.append("#E4002B" if v>=100 else "#b45309" if v>=75 else "#006633")
-        elif n=="coverage_utilization": colors.append("#E4002B" if v>=80 else "#b45309" if v>=50 else "#006633")
-        else: colors.append("#E4002B" if v>=3 else "#b45309" if v>=1.5 else "#006633")
+        if v is None: colors.append("#334155")
+        elif n=="loss_ratio": colors.append("#f43f5e" if v>=100 else "#fbbf24" if v>=75 else "#00d2b4")
+        elif n=="coverage_utilization": colors.append("#f43f5e" if v>=80 else "#fbbf24" if v>=50 else "#00d2b4")
+        else: colors.append("#f43f5e" if v>=3 else "#fbbf24" if v>=1.5 else "#00d2b4")
     fig=go.Figure(go.Bar(x=names,y=vals,marker_color=colors,
         text=[f"{v:.1f}" for v in vals],textposition="outside",
-        textfont=dict(color="#334155",size=11),hovertemplate="%{x}: %{y:.2f}<extra></extra>"))
+        textfont=dict(color="#94a3b8",size=11),hovertemplate="%{x}: %{y:.2f}<extra></extra>"))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
         height=230,margin=dict(t=30,b=10,l=10,r=10),bargap=0.4,
-        xaxis=dict(tickfont=dict(color="#475569",size=11),gridcolor="rgba(0,0,0,0)"),
-        yaxis=dict(tickfont=dict(color="#475569",size=10),gridcolor="rgba(0,0,0,0.05)",zeroline=False))
+        xaxis=dict(tickfont=dict(color="#64748b",size=11),gridcolor="rgba(0,0,0,0)"),
+        yaxis=dict(tickfont=dict(color="#64748b",size=10),gridcolor="rgba(255,255,255,0.04)",zeroline=False))
     return fig
 
 def make_portfolio_risk_chart(portfolio):
     names=[p["name"][:16] for p in portfolio]
     scores=[p["risk_score"] for p in portfolio]
-    colors=["#E4002B" if p["risk_level"]=="HIGH" else "#b45309" if p["risk_level"]=="MEDIUM" else "#006633" for p in portfolio]
+    colors=["#f43f5e" if p["risk_level"]=="HIGH" else "#fbbf24" if p["risk_level"]=="MEDIUM" else "#00d2b4" for p in portfolio]
     fig=go.Figure(go.Bar(x=names,y=scores,marker_color=colors,
-        text=scores,textposition="outside",textfont=dict(color="#334155",size=11),
+        text=scores,textposition="outside",textfont=dict(color="#94a3b8",size=11),
         hovertemplate="%{x}<br>Risk Score: %{y}<extra></extra>"))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
         height=260,margin=dict(t=20,b=20,l=10,r=10),bargap=0.35,
-        xaxis=dict(tickfont=dict(color="#475569",size=10),gridcolor="rgba(0,0,0,0)"),
-        yaxis=dict(tickfont=dict(color="#475569",size=10),gridcolor="rgba(0,0,0,0.05)",zeroline=False,range=[0,115]))
+        xaxis=dict(tickfont=dict(color="#64748b",size=10),gridcolor="rgba(0,0,0,0)"),
+        yaxis=dict(tickfont=dict(color="#64748b",size=10),gridcolor="rgba(255,255,255,0.04)",zeroline=False,range=[0,115]))
     return fig
 
 def make_loss_ratio_by_category(portfolio):
     from collections import defaultdict
-    total = len(portfolio)
-    if total == 0:
-        return None
-    cat_count = defaultdict(int)
+    cat_data = defaultdict(list)
     for p in portfolio:
-        cat = p.get("category") or "Other"
-        cat_count[cat] += 1
-    if not cat_count:
+        if p.get("loss_ratio") and p.get("category"):
+            cat_data[p["category"]].append(p["loss_ratio"])
+    if not cat_data:
         return None
-    cats = list(cat_count.keys())
-    pcts = [round((cat_count[c] / total) * 100, 1) for c in cats]
-    colors = ["#003087","#0066CC","#E4002B","#b45309","#006633","#64748b","#0891b2","#7c3aed","#be185d","#065f46"]
-    bar_colors = [colors[i % len(colors)] for i in range(len(cats))]
-    fig = go.Figure(go.Bar(
-        x=cats, y=pcts, marker_color=bar_colors,
-        text=[f"{v}%" for v in pcts], textposition="outside",
-        textfont=dict(color="#334155", size=11),
-        hovertemplate="%{x}<br>%{y}% of total policies<extra></extra>"
-    ))
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        height=280, margin=dict(t=30, b=60, l=10, r=10), bargap=0.4,
-        xaxis=dict(tickfont=dict(color="#64748b", size=9), gridcolor="rgba(0,0,0,0)", tickangle=-20),
-        yaxis=dict(tickfont=dict(color="#64748b", size=10), gridcolor="rgba(0,0,0,0.05)",
-                   zeroline=False, ticksuffix="%", range=[0, max(pcts)*1.25])
-    )
+    cats = list(cat_data.keys())
+    avgs = [sum(v)/len(v) for v in cat_data.values()]
+    colors=["#f43f5e" if v>=100 else "#fbbf24" if v>=75 else "#00d2b4" for v in avgs]
+    fig=go.Figure(go.Bar(x=cats,y=avgs,marker_color=colors,
+        text=[f"{v:.1f}%" for v in avgs],textposition="outside",
+        textfont=dict(color="#94a3b8",size=10),hovertemplate="%{x}<br>Avg Loss Ratio: %{y:.1f}%<extra></extra>"))
+    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
+        height=280,margin=dict(t=30,b=60,l=10,r=10),bargap=0.35,
+        xaxis=dict(tickfont=dict(color="#64748b",size=9),gridcolor="rgba(0,0,0,0)",tickangle=-25),
+        yaxis=dict(tickfont=dict(color="#64748b",size=10),gridcolor="rgba(255,255,255,0.04)",zeroline=False))
     return fig
 
 def make_claims_by_region(portfolio):
     from collections import defaultdict
-    total = len(portfolio)
-    if total == 0:
-        return None
-    region_count = defaultdict(int)
+    region_data = defaultdict(float)
     for p in portfolio:
-        reg = p.get("region") or "West India"
-        region_count[reg] += 1
-    if not region_count:
+        if p.get("claims") and p.get("region"):
+            region_data[p["region"]] += p["claims"]
+    if not region_data:
         return None
-    labels = list(region_count.keys())
-    values = [region_count[l] for l in labels]
-    pcts   = [round((v / total) * 100, 1) for v in values]
-    colors = ["#003087","#E4002B","#0066CC","#b45309","#006633"]
-    fig = go.Figure(go.Pie(
-        labels=labels,
-        values=values,
-        hole=0.5,
-        marker=dict(colors=colors[:len(labels)], line=dict(color="#ffffff", width=2)),
-        textfont=dict(color="#ffffff", size=11),
-        textinfo="label+percent",
-        hovertemplate="%{label}<br>%{value} policies (%{percent})<extra></extra>"
-    ))
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        showlegend=True, height=280, margin=dict(t=10, b=10, l=10, r=10),
-        legend=dict(font=dict(color="#334155", size=10), bgcolor="rgba(0,0,0,0)")
-    )
+    labels=list(region_data.keys())
+    values=[region_data[l] for l in labels]
+    colors=["#38bdf8","#00d2b4","#fbbf24","#f43f5e","#a78bfa"]
+    fig=go.Figure(go.Pie(labels=labels,values=values,hole=0.5,
+        marker=dict(colors=colors[:len(labels)],line=dict(color="#07090f",width=2)),
+        textfont=dict(color="#fff",size=11),hovertemplate="%{label}<br>Claims: ₹%{value:,.0f}<extra></extra>"))
+    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
+        showlegend=True,height=280,margin=dict(t=10,b=10,l=10,r=10),
+        legend=dict(font=dict(color="#64748b",size=10),bgcolor="rgba(0,0,0,0)"))
     return fig
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 # ── Top navigation bar ───────────────────────────────────────────────────────
 st.markdown("""
 <div style="display:flex;align-items:center;justify-content:space-between;
-            background:#003087;border-bottom:3px solid #E4002B;
+            background:#0b0f1a;border-bottom:1px solid rgba(255,255,255,0.06);
             padding:0.8rem 1.5rem;margin:-1.8rem -2.5rem 1.5rem -2.5rem;
             flex-wrap:wrap;gap:0.5rem;">
-    <div style="display:flex;align-items:center;gap:1rem;">
-        <div style="font-family:'Inter',sans-serif;font-size:1.2rem;font-weight:800;color:#fff;letter-spacing:-0.02em;">
-            Policy<span style="color:#ffccd4;">IQ</span>
-        </div>
-        <div style="width:1px;height:18px;background:rgba(255,255,255,0.25);"></div>
-        <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);letter-spacing:0.1em;text-transform:uppercase;font-weight:500;">
-            Marsh IMEA · OPEX Analytics
-        </div>
+    <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#fff;">
+        Policy<span style="color:#38bdf8;">IQ</span>
+    </div>
+    <div style="font-size:0.65rem;color:#334155;letter-spacing:0.08em;text-transform:uppercase;">
+        OPEX Analytics · Marsh IMEA
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -788,10 +618,10 @@ for col, (key, icon, label, page_val) in zip(nav_cols[:5], nav_items):
             <style>
             div[data-testid="stButton"] button[kind="secondary"]#btn_{key},
             div[data-testid="column"]:nth-child({nav_items.index((key,icon,label,page_val))+1}) .stButton button {{
-                background: linear-gradient(135deg,#003087,#0066CC) !important;
+                background: linear-gradient(135deg,#0369a1,#38bdf8) !important;
                 color: white !important;
                 border: none !important;
-                box-shadow: 0 4px 15px rgba(0,48,135,0.3) !important;
+                box-shadow: 0 4px 15px rgba(56,189,248,0.35) !important;
             }}
             </style>""", unsafe_allow_html=True)
 
@@ -892,19 +722,19 @@ if st.session_state.page == "Policy Analyser":
 
         elif not result:
             st.markdown("""
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
+            <div style="background:#060810;border:1px solid rgba(255,255,255,0.04);border-radius:12px;
                         padding:1.2rem;margin-top:1.2rem;">
                 <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
-                            color:#003087;margin-bottom:0.6rem;">Pipeline extracts</div>
+                            color:#1e293b;margin-bottom:0.6rem;">Pipeline extracts</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.25rem;">
-                    <div style="font-size:0.75rem;color:#334155;">✦ Policy & insured info</div>
-                    <div style="font-size:0.75rem;color:#334155;">✦ Coverage & premium</div>
-                    <div style="font-size:0.75rem;color:#334155;">✦ Claims history</div>
-                    <div style="font-size:0.75rem;color:#334155;">✦ Loss ratio</div>
-                    <div style="font-size:0.75rem;color:#334155;">✦ Risk score & flags</div>
-                    <div style="font-size:0.75rem;color:#334155;">✦ Risk clauses</div>
-                    <div style="font-size:0.75rem;color:#334155;">✦ Why this risk score</div>
-                    <div style="font-size:0.75rem;color:#334155;">✦ Action recommendations</div>
+                    <div style="font-size:0.73rem;color:#334155;">✦ Policy & insured info</div>
+                    <div style="font-size:0.73rem;color:#334155;">✦ Coverage & premium</div>
+                    <div style="font-size:0.73rem;color:#334155;">✦ Claims history</div>
+                    <div style="font-size:0.73rem;color:#334155;">✦ Loss ratio</div>
+                    <div style="font-size:0.73rem;color:#334155;">✦ Risk score & flags</div>
+                    <div style="font-size:0.73rem;color:#334155;">✦ Risk clauses</div>
+                    <div style="font-size:0.73rem;color:#334155;">✦ Why this risk score</div>
+                    <div style="font-size:0.73rem;color:#334155;">✦ Action recommendations</div>
                 </div>
             </div>""", unsafe_allow_html=True)
 
@@ -1013,12 +843,12 @@ if st.session_state.page == "Policy Analyser":
         else:
             if not st.session_state.get("analyser_result"):
                 st.markdown("""
-                <div style="background:#ffffff;border:2px dashed #cbd5e1;
+                <div style="background:#0c1424;border:1px dashed rgba(56,189,248,0.12);
                             border-radius:16px;padding:4rem 2rem;text-align:center;">
                     <div style="font-size:2.5rem;margin-bottom:1rem;">🛡️</div>
-                    <div style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;color:#003087;margin-bottom:0.4rem;">
+                    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#1e293b;margin-bottom:0.4rem;">
                         No document analysed yet</div>
-                    <div style="font-size:0.82rem;color:#64748b;max-width:260px;margin:0 auto;">
+                    <div style="font-size:0.8rem;color:#1e293b;max-width:260px;margin:0 auto;">
                         Paste a policy, upload a file, or load a sample — then click Extract & Analyse</div>
                 </div>""",unsafe_allow_html=True)
             else:
@@ -1420,12 +1250,12 @@ elif st.session_state.page == "About & Guide":
     st.markdown("""
     <div class="card">
         <h3 style="font-size:1.1rem;margin-bottom:1rem;">🛡️ What is PolicyIQ?</h3>
-        <div style="font-size:0.95rem;color:#334155;line-height:1.9;">
-            <div style="margin-bottom:0.6rem;">• AI-powered insurance document intelligence platform built for <b style="color:#003087;">Marsh IMEA's OPEX Analytics</b> team.</div>
-            <div style="margin-bottom:0.6rem;">• Solves a core problem — brokers spend <b style="color:#E4002B;">60–90 minutes</b> manually reading each policy, extracting fields, and computing risk ratios.</div>
-            <div style="margin-bottom:0.6rem;">• PolicyIQ reduces that to <b style="color:#006633;">under 30 seconds</b> using an LLM extraction pipeline + automated risk scoring.</div>
-            <div style="margin-bottom:0.6rem;">• Covers <b style="color:#b45309;">commercial insurance</b> — property, marine, industrial, liability, motor, cyber and more across IMEA.</div>
-            <div>• Built on <b style="color:#003087;">n8n · GPT-4.1-mini · Python · Streamlit · Plotly</b></div>
+        <div style="font-size:0.95rem;color:#cbd5e1;line-height:1.9;">
+            <div style="margin-bottom:0.6rem;">• AI-powered insurance document intelligence platform built for <b style="color:#38bdf8;">Marsh IMEA's OPEX Analytics</b> team.</div>
+            <div style="margin-bottom:0.6rem;">• Solves a core problem — brokers spend <b style="color:#f43f5e;">60–90 minutes</b> manually reading each policy, extracting fields, and computing risk ratios.</div>
+            <div style="margin-bottom:0.6rem;">• PolicyIQ reduces that to <b style="color:#00d2b4;">under 30 seconds</b> using an LLM extraction pipeline + automated risk scoring.</div>
+            <div style="margin-bottom:0.6rem;">• Covers <b style="color:#fbbf24;">commercial insurance</b> — property, marine, industrial, liability, motor, cyber and more across IMEA.</div>
+            <div>• Built on <b style="color:#38bdf8;">n8n · GPT-4.1-mini · Python · Streamlit · Plotly</b></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1588,14 +1418,14 @@ elif st.session_state.page == "Impact & Benefits":
     # Summary bar
     st.markdown("<div style='margin-top:1rem;'></div>", unsafe_allow_html=True)
     st.markdown("""
-    <div style="background:linear-gradient(135deg,#003087,#0066CC);border:none;
-                border-radius:12px;padding:1.5rem 2rem;border-bottom:3px solid #E4002B;">
-        <div style="font-family:'Inter',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.15em;
-                    text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:0.8rem;">One Line Summary</div>
-        <div style="font-family:'Inter',sans-serif;font-size:1.05rem;font-weight:700;color:#fff;line-height:1.7;">
+    <div style="background:linear-gradient(135deg,#0c1a2e,#0a1628);border:1px solid rgba(56,189,248,0.15);
+                border-radius:16px;padding:1.5rem 2rem;">
+        <div style="font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.15em;
+                    text-transform:uppercase;color:#38bdf8;margin-bottom:0.8rem;">One Line Summary</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:#fff;line-height:1.7;">
             PolicyIQ removes the manual bottleneck between document ingestion and risk decision-making —
-            <span style="color:#ffccd4;">freeing brokers to focus on advisory work</span> while giving leadership
-            <span style="color:#fef08a;">real-time portfolio intelligence</span> they previously only got at end of month.
+            <span style="color:#38bdf8;">freeing brokers to focus on advisory work</span> while giving leadership
+            <span style="color:#00d2b4;">real-time portfolio intelligence</span> they previously only got at end of month.
         </div>
     </div>
     """, unsafe_allow_html=True)
